@@ -2,11 +2,15 @@
 
 Point it at a codebase. Get back a picture you can trust, and a document that says the same thing.
 
+[![A traced flow playing across the map of Show me](media/flow.svg)](https://ofori01.github.io/show-me/)
+
 ### [→ Open the live demo](https://ofori01.github.io/show-me/)
 
-Show me, mapped by Show me. Nothing to install — walk the six chapters, click a
-building to read what it does, play a flow and watch a payload travel a real,
-cited path. The same map as text is [SYSTEM.md](SYSTEM.md).
+That is Show me, mapped by Show me, and the animation above is real geometry
+rather than a mock-up — the same layout the page uses, with a payload walking
+one of its traced flows. Nothing to install: walk the six chapters, click a
+building to read what it does, play a flow one cited step at a time. The same
+map as text is [SYSTEM.md](SYSTEM.md).
 
 Show me is a skill for coding agents. It reads a repository and produces an
 interactive isometric map of it: buildings on a grid whose size is measured from
@@ -86,6 +90,18 @@ node scripts/twin.mjs     examples/show-me.system-map.json --repo ../.. --out /t
 [the demo](https://ofori01.github.io/show-me/) is. Without it you get a fragment
 meant to be embedded in a host page.
 
+The animation at the top of this file is generated the same way, from the same
+map:
+
+```bash
+node scripts/preview.mjs examples/show-me.system-map.json --repo ../.. \
+  --flow render --out /tmp/flow.svg
+```
+
+An animated SVG rather than a GIF: it needs no browser to record and no encoder
+to build, it stays sharp at any size, it is a few kilobytes, and it animates
+inside an `<img>` tag.
+
 Open `/tmp/map.html` in a browser. If nothing moves, serve it instead — some
 browsers render a local file as a static snapshot with no scripts:
 
@@ -122,6 +138,7 @@ skills/show-me/
     validate.mjs              the citation gate, coverage, --relocate, --globs-only
     render.mjs                map -> one HTML file
     twin.mjs                  map -> Markdown
+    preview.mjs               map -> an animated SVG of one flow, for a README
     self-test.mjs             eleven ways a map can lie, each asserted caught
     layout-test.mjs           connections never cross a building; layout is deterministic
     lib/                      measuring, projection, placement, scene
