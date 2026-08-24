@@ -49,9 +49,9 @@ jobs:
 
       - name: Run the guards before publishing anything
         run: |
-          node skills/show-me/scripts/self-test.mjs --repo .
-          node skills/show-me/scripts/layout-test.mjs --repo .
-          node skills/show-me/scripts/validate.mjs skills/show-me/examples/show-me.system-map.json --repo .
+          node skills/show-me/scripts/self-test.mjs --repo skills/show-me
+          node skills/show-me/scripts/layout-test.mjs --repo skills/show-me
+          node skills/show-me/scripts/validate.mjs skills/show-me/examples/show-me.system-map.json --repo skills/show-me
 
       - name: Pack and show what would ship
         run: npm pack --dry-run

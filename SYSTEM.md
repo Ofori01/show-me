@@ -29,7 +29,7 @@ What the scripts keep is the work reading cannot do. Opening ninety cited files 
 
 The sharpest of them is the coverage check, because it catches the failure a reader cannot catch in themselves: reading a directory, feeling finished, and moving on. That feels identical to having finished. Subtracting claimed files from files in scope has no such blind spot, and on this project it surfaced a whole subsystem in a directory the author had already read.
 
-**Scope.** The whole skill: the instructions an agent reads, the citation gate, the measuring and drawing pipeline, the published page runtime, and the example maps.
+**Scope.** The whole skill, read from its own directory: the instructions an agent follows, the citation gate, the measuring and drawing pipeline, the published page runtime, and everything the pipeline emits.
 
 ## How to read this
 
@@ -160,16 +160,16 @@ The whole method, written for an agent about to map something. It sets out the s
 **How it's built.** A single Markdown file with YAML frontmatter naming the skill and describing when to reach for it. It states the pipeline as shell commands and delegates the detail to three reference documents rather than restating it.
 
 **Connections.**
-- imports types from **The contract** (the contract)<br>`skills/show-me/SKILL.md:57` — `Read 'references/schema.md' before writing any JSON`
-- imports types from **How to read** (how to read)<br>`skills/show-me/SKILL.md:58` — `Read 'references/extraction.md' for how to find structure by reading`
-- imports types from **The visual language**<br>`skills/show-me/SKILL.md:60` — `Read 'references/visual-language.md' for what each shape and channel means`
-- calls **The citation gate** (step 5)<br>`skills/show-me/SKILL.md:235` — `node scripts/validate.mjs <map>.json --repo <worktree>`
-- calls **The assembler** (step 6)<br>`skills/show-me/SKILL.md:238` — `node scripts/render.mjs   <map>.json --repo <worktree> --out <out>.html`
+- imports types from **The contract** (the contract)<br>`SKILL.md:57` — `Read 'references/schema.md' before writing any JSON`
+- imports types from **How to read** (how to read)<br>`SKILL.md:58` — `Read 'references/extraction.md' for how to find structure by reading`
+- imports types from **The visual language**<br>`SKILL.md:60` — `Read 'references/visual-language.md' for what each shape and channel means`
+- calls **The citation gate** (step 5)<br>`SKILL.md:235` — `node scripts/validate.mjs <map>.json --repo <worktree>`
+- calls **The assembler** (step 6)<br>`SKILL.md:238` — `node scripts/render.mjs   <map>.json --repo <worktree> --out <out>.html`
 
 **Evidence.**
-- `skills/show-me/SKILL.md:235` — `node scripts/validate.mjs <map>.json --repo <worktree>`
+- `SKILL.md:235` — `node scripts/validate.mjs <map>.json --repo <worktree>`
 
-**Files.** `skills/show-me/SKILL.md`
+**Files.** `SKILL.md`
 
 ### The contract `SCH`
 
@@ -183,9 +183,9 @@ The exact shape of the file an agent writes. Everything the picture shows must b
 - ← **The instructions** imports types from this
 
 **Evidence.**
-- `skills/show-me/references/schema.md:1` — `# 'system-map.json' contract (v1)`
+- `references/schema.md:1` — `# 'system-map.json' contract (v1)`
 
-**Files.** `skills/show-me/references/schema.md`
+**Files.** `references/schema.md`
 
 ### How to read `EXT`
 
@@ -196,13 +196,13 @@ The reading recipes. How to find what depends on what without guessing, how to c
 **How it's built.** Ranks evidence from strongest to weakest, gives the ripgrep invocations that produce file, line and literal text in one step, and explains why queue names in particular must be read rather than matched.
 
 **Connections.**
-- imports types from **Measuring**<br>`skills/show-me/references/extraction.md:96` — `REPO=/path/to/worktree node -e "import('./scripts/lib/metrics.mjs')`
+- imports types from **Measuring**<br>`references/extraction.md:96` — `REPO=/path/to/worktree node -e "import('./scripts/lib/metrics.mjs')`
 - ← **The instructions** imports types from this
 
 **Evidence.**
-- `skills/show-me/references/extraction.md:1` — `# Finding structure by reading`
+- `references/extraction.md:1` — `# Finding structure by reading`
 
-**Files.** `skills/show-me/references/extraction.md`
+**Files.** `references/extraction.md`
 
 ### The visual language `VIS`
 
@@ -213,13 +213,13 @@ What the picture means. Which shape says a thing runs versus stores versus buffe
 **How it's built.** Binds every visual property to a measured number and records the formulas alongside a note to keep them in step with the geometry module, because a document that misstates the measurement undoes the promise it describes.
 
 **Connections.**
-- imports types from **Projection and mass**<br>`skills/show-me/references/visual-language.md:37` — `These formulas live in 'scripts/lib/geometry.mjs'`
+- imports types from **Projection and mass**<br>`references/visual-language.md:37` — `These formulas live in 'scripts/lib/geometry.mjs'`
 - ← **The instructions** imports types from this
 
 **Evidence.**
-- `skills/show-me/references/visual-language.md:37` — `These formulas live in 'scripts/lib/geometry.mjs'. If you change them there,`
+- `references/visual-language.md:37` — `These formulas live in 'scripts/lib/geometry.mjs'. If you change them there,`
 
-**Files.** `skills/show-me/references/visual-language.md`
+**Files.** `references/visual-language.md`
 
 ### The citation gate `VAL`
 
@@ -233,7 +233,7 @@ The reason a map can be trusted. It opens every cited file and proves the quoted
 - Proves a cited line exists and says what was quoted, never that it was read correctly, so a misreading passes the gate.
 
 **Connections.**
-- calls **Measuring** (measure globs)<br>`skills/show-me/scripts/validate.mjs:398` — `const { expandGlobs, fileMetrics, discoverTestSiblings } = await import('./lib/metrics.mjs')`
+- calls **Measuring** (measure globs)<br>`scripts/validate.mjs:398` — `const { expandGlobs, fileMetrics, discoverTestSiblings } = await import('./lib/metrics.mjs')`
 - ← **The instructions** calls this
 - ← **The assembler** calls this
 - ← **The gate self-test** calls this
@@ -241,10 +241,10 @@ The reason a map can be trusted. It opens every cited file and proves the quoted
 - ← **The flow preview** calls this
 
 **Evidence.**
-- `skills/show-me/scripts/validate.mjs:55` — `if (!window.includes(evidence)) {`
-- `skills/show-me/scripts/validate.mjs:371` — `export async function scopeCoverage(map, repoRoot) {`
+- `scripts/validate.mjs:55` — `if (!window.includes(evidence)) {`
+- `scripts/validate.mjs:371` — `export async function scopeCoverage(map, repoRoot) {`
 
-**Files.** `skills/show-me/scripts/validate.mjs`
+**Files.** `scripts/validate.mjs`
 
 ### The gate self-test `GT`
 
@@ -255,13 +255,13 @@ Proof that the gate actually rejects lies. It takes a real map, corrupts it elev
 **How it's built.** Picks whichever shipped example resolves against the repo, clones it per case, and mutates one thing: a fabricated quotation, a real string cited at the wrong line, a flow that teleports, a branch step misdeclared as a hop.
 
 **Connections.**
-- calls **The citation gate** (eleven lies)<br>`skills/show-me/scripts/self-test.mjs:14` — `import { validateMap, resolveNodeFiles } from './validate.mjs'`
-- reads from **The example maps** (fixture)<br>`skills/show-me/scripts/self-test.mjs:26` — `for (const name of readdirSync(examples).filter((f) => f.endsWith('.system-map.json')).sort())`
+- calls **The citation gate** (eleven lies)<br>`scripts/self-test.mjs:14` — `import { validateMap, resolveNodeFiles } from './validate.mjs'`
+- reads from **The example maps** (fixture)<br>`scripts/self-test.mjs:26` — `for (const name of readdirSync(examples).filter((f) => f.endsWith('.system-map.json')).sort())`
 
 **Evidence.**
-- `skills/show-me/scripts/self-test.mjs:14` — `import { validateMap, resolveNodeFiles } from './validate.mjs'`
+- `scripts/self-test.mjs:14` — `import { validateMap, resolveNodeFiles } from './validate.mjs'`
 
-**Files.** `skills/show-me/scripts/self-test.mjs`
+**Files.** `scripts/self-test.mjs`
 
 ### Measuring `MET`
 
@@ -276,10 +276,10 @@ Counts. How many files a structure holds and how many lines they run to, plus wh
 - ← **How to read** imports types from this
 
 **Evidence.**
-- `skills/show-me/scripts/lib/metrics.mjs:96` — `export function expandGlobs(repoRoot, patterns) {`
-- `skills/show-me/scripts/lib/metrics.mjs:28` — `const TEST_PATTERN = new RegExp([`
+- `scripts/lib/metrics.mjs:96` — `export function expandGlobs(repoRoot, patterns) {`
+- `scripts/lib/metrics.mjs:28` — `const TEST_PATTERN = new RegExp([`
 
-**Files.** `skills/show-me/scripts/lib/metrics.mjs`
+**Files.** `scripts/lib/metrics.mjs`
 
 ### Projection and mass `GEO`
 
@@ -298,10 +298,10 @@ Turns measurements into shapes. It decides how wide and how tall a structure is 
 - ← **The flow preview** calls this
 
 **Evidence.**
-- `skills/show-me/scripts/lib/geometry.mjs:32` — `export function massOf({ fileCount, loc }) {`
-- `skills/show-me/scripts/lib/geometry.mjs:12` — `export function project(gx, gy, z = 0) {`
+- `scripts/lib/geometry.mjs:32` — `export function massOf({ fileCount, loc }) {`
+- `scripts/lib/geometry.mjs:12` — `export function project(gx, gy, z = 0) {`
 
-**Files.** `skills/show-me/scripts/lib/geometry.mjs`
+**Files.** `scripts/lib/geometry.mjs`
 
 ### Placement and routing `LAY`
 
@@ -312,15 +312,15 @@ Decides where everything sits. Each group becomes a raised band of its own. Ever
 **How it's built.** Groups become contiguous row bands, columns and rows size to their own contents, and connections route through reserved corridors with lanes assigned by interval colouring so two routes contend only where they actually overlap.
 
 **Connections.**
-- calls **Projection and mass**<br>`skills/show-me/scripts/lib/layout.mjs:16` — `import { massOf, project } from './geometry.mjs'`
+- calls **Projection and mass**<br>`scripts/lib/layout.mjs:16` — `import { massOf, project } from './geometry.mjs'`
 - ← **The assembler** calls this
 - ← **The layout invariants** calls this
 - ← **The flow preview** calls this
 
 **Evidence.**
-- `skills/show-me/scripts/lib/layout.mjs:16` — `import { massOf, project } from './geometry.mjs'`
+- `scripts/lib/layout.mjs:16` — `import { massOf, project } from './geometry.mjs'`
 
-**Files.** `skills/show-me/scripts/lib/layout.mjs`
+**Files.** `scripts/lib/layout.mjs`
 
 ### The scene `SVG`
 
@@ -331,14 +331,14 @@ Draws the field: the ground, the raised district platforms, the connections, the
 **How it's built.** Emits inline SVG from coordinates already computed, so the browser does no layout work and the markup is diffable between runs. Hatch density on a roof encodes how many other structures depend on it.
 
 **Connections.**
-- calls **Projection and mass**<br>`skills/show-me/scripts/lib/svg.mjs:4` — `import { buildMesh, groundGrid, project } from './geometry.mjs'`
+- calls **Projection and mass**<br>`scripts/lib/svg.mjs:4` — `import { buildMesh, groundGrid, project } from './geometry.mjs'`
 - ← **The assembler** calls this
 - ← **The flow preview** imports types from this
 
 **Evidence.**
-- `skills/show-me/scripts/lib/svg.mjs:4` — `import { buildMesh, groundGrid, project } from './geometry.mjs'`
+- `scripts/lib/svg.mjs:4` — `import { buildMesh, groundGrid, project } from './geometry.mjs'`
 
-**Files.** `skills/show-me/scripts/lib/svg.mjs`
+**Files.** `scripts/lib/svg.mjs`
 
 ### The assembler `RND`
 
@@ -349,19 +349,19 @@ Puts the page together. It refuses to run on a map that has not passed the gate.
 **How it's built.** Runs the gate first, resolves globs to measurements, calls layout and the scene emitter, then inlines the stylesheet, the interaction layer and the map itself as pure ASCII so no host charset can corrupt it.
 
 **Connections.**
-- calls **The citation gate** (gate first)<br>`skills/show-me/scripts/render.mjs:16` — `import { validateMap, resolveNodeFiles } from './validate.mjs'`
-- calls **Placement and routing**<br>`skills/show-me/scripts/render.mjs:17` — `import { layout } from './lib/layout.mjs'`
-- calls **The scene**<br>`skills/show-me/scripts/render.mjs:18` — `import { renderScene, escapeHtml as esc, DEFAULT_SHAPE }`
-- calls **Projection and mass**<br>`skills/show-me/scripts/render.mjs:19` — `import { massOf } from './lib/geometry.mjs'`
-- reads from **The theme** (inlined)<br>`skills/show-me/scripts/render.mjs:218` — `const css = readFileSync(join(assets, 'app.css'), 'utf8')`
-- reads from **The interaction layer** (inlined)<br>`skills/show-me/scripts/render.mjs:219` — `const js = readFileSync(join(assets, 'app.js'), 'utf8')`
+- calls **The citation gate** (gate first)<br>`scripts/render.mjs:16` — `import { validateMap, resolveNodeFiles } from './validate.mjs'`
+- calls **Placement and routing**<br>`scripts/render.mjs:17` — `import { layout } from './lib/layout.mjs'`
+- calls **The scene**<br>`scripts/render.mjs:18` — `import { renderScene, escapeHtml as esc, DEFAULT_SHAPE }`
+- calls **Projection and mass**<br>`scripts/render.mjs:19` — `import { massOf } from './lib/geometry.mjs'`
+- reads from **The theme** (inlined)<br>`scripts/render.mjs:218` — `const css = readFileSync(join(assets, 'app.css'), 'utf8')`
+- reads from **The interaction layer** (inlined)<br>`scripts/render.mjs:219` — `const js = readFileSync(join(assets, 'app.js'), 'utf8')`
 - ← **The instructions** calls this
 
 **Evidence.**
-- `skills/show-me/scripts/render.mjs:16` — `import { validateMap, resolveNodeFiles } from './validate.mjs'`
-- `skills/show-me/scripts/render.mjs:218` — `const css = readFileSync(join(assets, 'app.css'), 'utf8')`
+- `scripts/render.mjs:16` — `import { validateMap, resolveNodeFiles } from './validate.mjs'`
+- `scripts/render.mjs:218` — `const css = readFileSync(join(assets, 'app.css'), 'utf8')`
 
-**Files.** `skills/show-me/scripts/render.mjs`
+**Files.** `scripts/render.mjs`
 
 ### The layout invariants `LT`
 
@@ -372,13 +372,13 @@ Proof that a connection never enters a building. That single property is the onl
 **How it's built.** Recomputes the layout for every shipped map and asserts no route enters a footprint, no footprints overlap, everything falls inside the frame, districts are contiguous, and two runs agree exactly.
 
 **Connections.**
-- calls **Placement and routing**<br>`skills/show-me/scripts/layout-test.mjs:16` — `import { layout } from './lib/layout.mjs'`
-- reads from **The example maps**<br>`skills/show-me/scripts/layout-test.mjs:19` — `const examples = join(here, '..', 'examples')`
+- calls **Placement and routing**<br>`scripts/layout-test.mjs:16` — `import { layout } from './lib/layout.mjs'`
+- reads from **The example maps**<br>`scripts/layout-test.mjs:19` — `const examples = join(here, '..', 'examples')`
 
 **Evidence.**
-- `skills/show-me/scripts/layout-test.mjs:16` — `import { layout } from './lib/layout.mjs'`
+- `scripts/layout-test.mjs:16` — `import { layout } from './lib/layout.mjs'`
 
-**Files.** `skills/show-me/scripts/layout-test.mjs`
+**Files.** `scripts/layout-test.mjs`
 
 ### The interaction layer `APP`
 
@@ -392,10 +392,10 @@ Everything the page does once it is open. Panning and zooming, clicking a struct
 - ← **The assembler** reads from this
 
 **Evidence.**
-- `skills/show-me/assets/app.js:192` — `const READING_WORDS_PER_SECOND = 3.2;   // unhurried prose, not skimming`
-- `skills/show-me/assets/app.js:292` — `function scrollStepIntoView(el) {`
+- `assets/app.js:192` — `const READING_WORDS_PER_SECOND = 3.2;   // unhurried prose, not skimming`
+- `assets/app.js:292` — `function scrollStepIntoView(el) {`
 
-**Files.** `skills/show-me/assets/app.js`
+**Files.** `assets/app.js`
 
 ### The theme `CSS`
 
@@ -412,9 +412,9 @@ How the page looks in either colour scheme, and the panel layout around the map.
 - ← **The assembler** reads from this
 
 **Evidence.**
-- `skills/show-me/assets/app.css:1` — `@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono`
+- `assets/app.css:1` — `@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono`
 
-**Files.** `skills/show-me/assets/app.css`
+**Files.** `assets/app.css`
 
 ### The example maps `EXM`
 
@@ -432,9 +432,9 @@ Three finished maps, which double as the fixtures both guard scripts run against
 - ← **The layout invariants** reads from this
 
 **Evidence.**
-- `skills/show-me/examples/show-me.system-map.json:2` — `"schema": "system-map/v1"`
+- `examples/show-me.system-map.json:2` — `"schema": "system-map/v1"`
 
-**Files.** `skills/show-me/examples/*.system-map.json`
+**Files.** `examples/*.system-map.json`
 
 ### The text twin `TWN`
 
@@ -445,14 +445,14 @@ Writes the same map out as a document instead of a picture. The picture is bette
 **How it's built.** Takes the same data file the page is drawn from, re-runs the gate, resolves the file globs for their counts, and emits Markdown: a header table, the reading order, one section per structure with its connections and the citation behind each, then the traced flows and a provenance note.
 
 **Connections.**
-- calls **The citation gate** (gate first)<br>`skills/show-me/scripts/twin.mjs:18` — `import { validateMap, resolveNodeFiles, scopeCoverage } from './validate.mjs'`
-- imports types from **Projection and mass**<br>`skills/show-me/scripts/twin.mjs:19` — `import { massOf } from './lib/geometry.mjs'`
+- calls **The citation gate** (gate first)<br>`scripts/twin.mjs:18` — `import { validateMap, resolveNodeFiles, scopeCoverage } from './validate.mjs'`
+- imports types from **Projection and mass**<br>`scripts/twin.mjs:19` — `import { massOf } from './lib/geometry.mjs'`
 
 **Evidence.**
-- `skills/show-me/scripts/twin.mjs:33` — `export async function twin(map, repoRoot) {`
-- `skills/show-me/scripts/twin.mjs:243` — `writeFileSync(resolve(flags.get('out')), text, 'utf8')`
+- `scripts/twin.mjs:33` — `export async function twin(map, repoRoot) {`
+- `scripts/twin.mjs:243` — `writeFileSync(resolve(flags.get('out')), text, 'utf8')`
 
-**Files.** `skills/show-me/scripts/twin.mjs`
+**Files.** `scripts/twin.mjs`
 
 ### The flow preview `PRV`
 
@@ -463,16 +463,16 @@ Makes a small moving picture of one traced path, for a README or a message. A st
 **How it's built.** Runs the same placement the page uses, frames only the structures the chosen flow touches, and emits an animated SVG. Each hop gets a lit copy of its route and a token timed to arrive in turn. Vector rather than a recording, so it needs no browser to capture and cannot drift from the map.
 
 **Connections.**
-- calls **The citation gate** (gate first)<br>`skills/show-me/scripts/preview.mjs:18` — `import { validateMap, resolveNodeFiles } from './validate.mjs'`
-- calls **Placement and routing** (same placement)<br>`skills/show-me/scripts/preview.mjs:19` — `import { layout } from './lib/layout.mjs'`
-- calls **Projection and mass**<br>`skills/show-me/scripts/preview.mjs:20` — `import { buildMesh, project } from './lib/geometry.mjs'`
-- imports types from **The scene**<br>`skills/show-me/scripts/preview.mjs:21` — `import { tagText, DEFAULT_SHAPE, escapeHtml as esc } from './lib/svg.mjs'`
+- calls **The citation gate** (gate first)<br>`scripts/preview.mjs:18` — `import { validateMap, resolveNodeFiles } from './validate.mjs'`
+- calls **Placement and routing** (same placement)<br>`scripts/preview.mjs:19` — `import { layout } from './lib/layout.mjs'`
+- calls **Projection and mass**<br>`scripts/preview.mjs:20` — `import { buildMesh, project } from './lib/geometry.mjs'`
+- imports types from **The scene**<br>`scripts/preview.mjs:21` — `import { tagText, DEFAULT_SHAPE, escapeHtml as esc } from './lib/svg.mjs'`
 
 **Evidence.**
-- `skills/show-me/scripts/preview.mjs:34` — `export async function preview(map, repoRoot, flowId, { step = 1200 } = {}) {`
-- `skills/show-me/scripts/preview.mjs:53` — `const travel = round((step * 0.62) / cycle)`
+- `scripts/preview.mjs:34` — `export async function preview(map, repoRoot, flowId, { step = 1200 } = {}) {`
+- `scripts/preview.mjs:53` — `const travel = round((step * 0.62) / cycle)`
 
-**Files.** `skills/show-me/scripts/preview.mjs`
+**Files.** `scripts/preview.mjs`
 
 ## Traced flows
 
@@ -486,22 +486,22 @@ A validated map becomes one self-contained HTML file: gated, measured, placed, d
 
 1. **The instructions → The assembler**
    The pipeline hands the map to the assembler, which is the only step that produces a file anyone looks at.
-   `skills/show-me/SKILL.md:238` — `node scripts/render.mjs   <map>.json --repo <worktree> --out <out>.html`
+   `SKILL.md:238` — `node scripts/render.mjs   <map>.json --repo <worktree> --out <out>.html`
 2. **The assembler → The citation gate** *(side effect; the path does not advance)*
    The gate runs again first, so a map that fails verification cannot be rendered even by accident.
-   `skills/show-me/scripts/render.mjs:16` — `import { validateMap, resolveNodeFiles } from './validate.mjs'`
+   `scripts/render.mjs:16` — `import { validateMap, resolveNodeFiles } from './validate.mjs'`
 3. **The assembler → Projection and mass** *(side effect; the path does not advance)*
    Measured file counts and line counts become a footprint and a height, which is why no field can inflate a building.
-   `skills/show-me/scripts/render.mjs:19` — `import { massOf } from './lib/geometry.mjs'`
+   `scripts/render.mjs:19` — `import { massOf } from './lib/geometry.mjs'`
 4. **The assembler → Placement and routing** *(side effect; the path does not advance)*
    Groups become raised bands and every connection is routed through the corridors between buildings.
-   `skills/show-me/scripts/render.mjs:17` — `import { layout } from './lib/layout.mjs'`
+   `scripts/render.mjs:17` — `import { layout } from './lib/layout.mjs'`
 5. **The assembler → The scene** *(side effect; the path does not advance)*
    Final coordinates are emitted as inline SVG, so the browser does no layout work and two runs are diffable.
-   `skills/show-me/scripts/render.mjs:18` — `import { renderScene, escapeHtml as esc, DEFAULT_SHAPE }`
+   `scripts/render.mjs:18` — `import { renderScene, escapeHtml as esc, DEFAULT_SHAPE }`
 6. **The assembler → The interaction layer** *(side effect; the path does not advance)*
    The stylesheet, the interaction layer and the map itself are inlined as pure ASCII, leaving one portable file.
-   `skills/show-me/scripts/render.mjs:219` — `const js = readFileSync(join(assets, 'app.js'), 'utf8')`
+   `scripts/render.mjs:219` — `const js = readFileSync(join(assets, 'app.js'), 'utf8')`
 
 ### Rejecting a fabricated map
 
@@ -513,13 +513,13 @@ A real map is corrupted eleven ways and the gate must catch every one of them.
 
 1. **The gate self-test → The example maps** *(side effect; the path does not advance)*
    It picks whichever shipped example resolves here, so the gate can still be tested from a checkout missing the others.
-   `skills/show-me/scripts/self-test.mjs:26` — `for (const name of readdirSync(examples).filter((f) => f.endsWith('.system-map.json')).sort())`
+   `scripts/self-test.mjs:26` — `for (const name of readdirSync(examples).filter((f) => f.endsWith('.system-map.json')).sort())`
 2. **The gate self-test → The citation gate**
    Each case clones that map, breaks exactly one thing, and asserts the gate rejects it for the expected reason.
-   `skills/show-me/scripts/self-test.mjs:14` — `import { validateMap, resolveNodeFiles } from './validate.mjs'`
+   `scripts/self-test.mjs:14` — `import { validateMap, resolveNodeFiles } from './validate.mjs'`
 3. **The citation gate → Measuring** *(side effect; the path does not advance)*
    Glob resolution is checked too, because a structure pointing at no files cannot be drawn or measured at all.
-   `skills/show-me/scripts/validate.mjs:398` — `const { expandGlobs, fileMetrics, discoverTestSiblings } = await import('./lib/metrics.mjs')`
+   `scripts/validate.mjs:398` — `const { expandGlobs, fileMetrics, discoverTestSiblings } = await import('./lib/metrics.mjs')`
 
 ### Proving edges never cross
 
@@ -531,13 +531,13 @@ Every shipped map is re-laid-out and checked: no connection may enter a building
 
 1. **The layout invariants → The example maps** *(side effect; the path does not advance)*
    It runs over every shipped map, skipping any whose citations do not resolve against the repository given.
-   `skills/show-me/scripts/layout-test.mjs:19` — `const examples = join(here, '..', 'examples')`
+   `scripts/layout-test.mjs:19` — `const examples = join(here, '..', 'examples')`
 2. **The layout invariants → Placement and routing**
    Placement and routing are recomputed, then every segment is tested against every footprint for intersection.
-   `skills/show-me/scripts/layout-test.mjs:16` — `import { layout } from './lib/layout.mjs'`
+   `scripts/layout-test.mjs:16` — `import { layout } from './lib/layout.mjs'`
 3. **Placement and routing → Projection and mass** *(side effect; the path does not advance)*
    Projection and mass come from geometry, so a change to the height scale is caught by this test as well.
-   `skills/show-me/scripts/lib/layout.mjs:16` — `import { massOf, project } from './geometry.mjs'`
+   `scripts/lib/layout.mjs:16` — `import { massOf, project } from './geometry.mjs'`
 
 ## Provenance
 

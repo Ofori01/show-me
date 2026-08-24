@@ -48,13 +48,14 @@ build step. If you would rather not use npm, copy `skills/show-me` into
 
 ## Run it on itself
 
-The one example that ships is the map of this repo, so every citation resolves.
+The one example that ships is the map of the skill itself, and its citations are relative to
+the skill directory — so it resolves here, and anywhere you install it.
 
 ```bash
 cd skills/show-me
-node scripts/validate.mjs examples/show-me.system-map.json --repo ../..
-node scripts/render.mjs   examples/show-me.system-map.json --repo ../.. --out /tmp/map.html --standalone
-node scripts/twin.mjs     examples/show-me.system-map.json --repo ../.. --out /tmp/SYSTEM.md
+node scripts/validate.mjs examples/show-me.system-map.json --repo .
+node scripts/render.mjs   examples/show-me.system-map.json --repo . --out /tmp/map.html --standalone
+node scripts/twin.mjs     examples/show-me.system-map.json --repo . --out /tmp/SYSTEM.md
 ```
 
 Break a citation on purpose and run the gate again. That is the whole idea in one

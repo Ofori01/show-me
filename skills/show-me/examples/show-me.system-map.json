@@ -6,13 +6,13 @@
     "repository": "show-me",
     "commit": "af7d5f27",
     "branch": "main",
-    "scope": "The whole skill: the instructions an agent reads, the citation gate, the measuring and drawing pipeline, the published page runtime, and the example maps.",
+    "scope": "The whole skill, read from its own directory: the instructions an agent follows, the citation gate, the measuring and drawing pipeline, the published page runtime, and everything the pipeline emits.",
     "scopeGlobs": [
-      "skills/show-me/SKILL.md",
-      "skills/show-me/references/*.md",
-      "skills/show-me/scripts/**/*.mjs",
-      "skills/show-me/assets/*",
-      "skills/show-me/examples/*.json"
+      "SKILL.md",
+      "references/*.md",
+      "scripts/**/*.mjs",
+      "assets/*",
+      "examples/*.json"
     ],
     "overview": "This skill turns a codebase into a picture you can trust. The design is one idea: an agent reads the code and writes down what it found, and scripts do only the things a careful reader reliably gets wrong.\n\nNothing here parses source. That is deliberate, and it is what makes the skill work on any language without configuration. An earlier version shipped detectors that extracted relations with regular expressions; every false relation it produced came from a pattern misreading code, it needed new rules for every stack, and the one genuinely valuable thing it did turned out to need no language knowledge at all.\n\nWhat the scripts keep is the work reading cannot do. Opening ninety cited files to check every quotation is exactly the tedium a reader skims. Counting lines is arithmetic, and the moment a building size is estimated the picture becomes decoration. Placing buildings so that no connection ever crosses a footprint is a geometric invariant with a test behind it.\n\nThe sharpest of them is the coverage check, because it catches the failure a reader cannot catch in themselves: reading a directory, feeling finished, and moving on. That feels identical to having finished. Subtracting claimed files from files in scope has no such blind spot, and on this project it surfaced a whole subsystem in a directory the author had already read.",
     "readingHint": "Districts run top to bottom in the order the work happens: what you read, the gate, the measuring and drawing, the page, and what comes out.",
@@ -57,13 +57,13 @@
       "group": "read",
       "kind": "config",
       "files": [
-        "skills/show-me/SKILL.md"
+        "SKILL.md"
       ],
       "whatItDoes": "The whole method, written for an agent about to map something. It sets out the seven steps, the two rules that cannot be bent, and the division of labour that everything else follows.",
       "howItsBuilt": "A single Markdown file with YAML frontmatter naming the skill and describing when to reach for it. It states the pipeline as shell commands and delegates the detail to three reference documents rather than restating it.",
       "citations": [
         {
-          "file": "skills/show-me/SKILL.md",
+          "file": "SKILL.md",
           "line": 235,
           "evidence": "node scripts/validate.mjs <map>.json --repo <worktree>"
         }
@@ -77,13 +77,13 @@
       "group": "read",
       "kind": "config",
       "files": [
-        "skills/show-me/references/schema.md"
+        "references/schema.md"
       ],
       "whatItDoes": "The exact shape of the file an agent writes. Everything the picture shows must be derivable from that document, so this is the one place where the format is defined.",
       "howItsBuilt": "Annotated JSON with the required fields, the kinds a structure may take, the line styles each connection kind renders as, and the rules that keep a traced flow honest.",
       "citations": [
         {
-          "file": "skills/show-me/references/schema.md",
+          "file": "references/schema.md",
           "line": 1,
           "evidence": "# `system-map.json` contract (v1)"
         }
@@ -97,13 +97,13 @@
       "group": "read",
       "kind": "config",
       "files": [
-        "skills/show-me/references/extraction.md"
+        "references/extraction.md"
       ],
       "whatItDoes": "The reading recipes. How to find what depends on what without guessing, how to cross an async boundary, and how to get a citation without ever typing a line number.",
       "howItsBuilt": "Ranks evidence from strongest to weakest, gives the ripgrep invocations that produce file, line and literal text in one step, and explains why queue names in particular must be read rather than matched.",
       "citations": [
         {
-          "file": "skills/show-me/references/extraction.md",
+          "file": "references/extraction.md",
           "line": 1,
           "evidence": "# Finding structure by reading"
         }
@@ -117,13 +117,13 @@
       "group": "read",
       "kind": "config",
       "files": [
-        "skills/show-me/references/visual-language.md"
+        "references/visual-language.md"
       ],
       "whatItDoes": "What the picture means. Which shape says a thing runs versus stores versus buffers, what makes one building taller than another, and why a hollow outline means the code is not ours.",
       "howItsBuilt": "Binds every visual property to a measured number and records the formulas alongside a note to keep them in step with the geometry module, because a document that misstates the measurement undoes the promise it describes.",
       "citations": [
         {
-          "file": "skills/show-me/references/visual-language.md",
+          "file": "references/visual-language.md",
           "line": 37,
           "evidence": "These formulas live in `scripts/lib/geometry.mjs`. If you change them there,"
         }
@@ -137,18 +137,18 @@
       "group": "gate",
       "kind": "entry",
       "files": [
-        "skills/show-me/scripts/validate.mjs"
+        "scripts/validate.mjs"
       ],
       "whatItDoes": "The reason a map can be trusted. It opens every cited file and proves the quoted text is really there, and it reports which files in the declared region no structure claims. Nothing renders until it passes.",
       "howItsBuilt": "Structural checks, then for each citation it reads the file and searches a few lines either side for the literal evidence string. Also holds the coverage report and a relocate mode that repairs citations whose lines drifted while the code moved.",
       "citations": [
         {
-          "file": "skills/show-me/scripts/validate.mjs",
+          "file": "scripts/validate.mjs",
           "line": 55,
           "evidence": "if (!window.includes(evidence)) {"
         },
         {
-          "file": "skills/show-me/scripts/validate.mjs",
+          "file": "scripts/validate.mjs",
           "line": 371,
           "evidence": "export async function scopeCoverage(map, repoRoot) {"
         }
@@ -165,13 +165,13 @@
       "group": "gate",
       "kind": "entry",
       "files": [
-        "skills/show-me/scripts/self-test.mjs"
+        "scripts/self-test.mjs"
       ],
       "whatItDoes": "Proof that the gate actually rejects lies. It takes a real map, corrupts it eleven different ways, and checks that each corruption is caught.",
       "howItsBuilt": "Picks whichever shipped example resolves against the repo, clones it per case, and mutates one thing: a fabricated quotation, a real string cited at the wrong line, a flow that teleports, a branch step misdeclared as a hop.",
       "citations": [
         {
-          "file": "skills/show-me/scripts/self-test.mjs",
+          "file": "scripts/self-test.mjs",
           "line": 14,
           "evidence": "import { validateMap, resolveNodeFiles } from './validate.mjs'"
         }
@@ -185,18 +185,18 @@
       "group": "measure",
       "kind": "service",
       "files": [
-        "skills/show-me/scripts/lib/metrics.mjs"
+        "scripts/lib/metrics.mjs"
       ],
       "whatItDoes": "Counts. How many files a structure holds and how many lines they run to, plus which of them are tests. Building size comes from here and nowhere else.",
       "howItsBuilt": "A dependency-free glob matcher over a directory walk, line counting that ignores blanks, and sibling discovery that finds a test file next to its subject whatever the language calls it.",
       "citations": [
         {
-          "file": "skills/show-me/scripts/lib/metrics.mjs",
+          "file": "scripts/lib/metrics.mjs",
           "line": 96,
           "evidence": "export function expandGlobs(repoRoot, patterns) {"
         },
         {
-          "file": "skills/show-me/scripts/lib/metrics.mjs",
+          "file": "scripts/lib/metrics.mjs",
           "line": 28,
           "evidence": "const TEST_PATTERN = new RegExp(["
         }
@@ -210,18 +210,18 @@
       "group": "measure",
       "kind": "service",
       "files": [
-        "skills/show-me/scripts/lib/geometry.mjs"
+        "scripts/lib/geometry.mjs"
       ],
       "whatItDoes": "Turns measurements into shapes. It decides how wide and how tall a structure is from its file count and line count, and produces the three visible faces of every building.",
       "howItsBuilt": "A two-to-one isometric projection, a square-root height scale so a range spanning three orders of magnitude stays legible, and one branch per shape returning its own mesh.",
       "citations": [
         {
-          "file": "skills/show-me/scripts/lib/geometry.mjs",
+          "file": "scripts/lib/geometry.mjs",
           "line": 32,
           "evidence": "export function massOf({ fileCount, loc }) {"
         },
         {
-          "file": "skills/show-me/scripts/lib/geometry.mjs",
+          "file": "scripts/lib/geometry.mjs",
           "line": 12,
           "evidence": "export function project(gx, gy, z = 0) {"
         }
@@ -235,13 +235,13 @@
       "group": "place",
       "kind": "service",
       "files": [
-        "skills/show-me/scripts/lib/layout.mjs"
+        "scripts/lib/layout.mjs"
       ],
       "whatItDoes": "Decides where everything sits. Each group becomes a raised band of its own. Every connection travels only through the gaps between buildings, which is why no line is ever ambiguously in front of or behind one.",
       "howItsBuilt": "Groups become contiguous row bands, columns and rows size to their own contents, and connections route through reserved corridors with lanes assigned by interval colouring so two routes contend only where they actually overlap.",
       "citations": [
         {
-          "file": "skills/show-me/scripts/lib/layout.mjs",
+          "file": "scripts/lib/layout.mjs",
           "line": 16,
           "evidence": "import { massOf, project } from './geometry.mjs'"
         }
@@ -255,13 +255,13 @@
       "group": "place",
       "kind": "service",
       "files": [
-        "skills/show-me/scripts/lib/svg.mjs"
+        "scripts/lib/svg.mjs"
       ],
       "whatItDoes": "Draws the field: the ground, the raised district platforms, the connections, the buildings painted far to near, and the labels that appear only when a connection is highlighted.",
       "howItsBuilt": "Emits inline SVG from coordinates already computed, so the browser does no layout work and the markup is diffable between runs. Hatch density on a roof encodes how many other structures depend on it.",
       "citations": [
         {
-          "file": "skills/show-me/scripts/lib/svg.mjs",
+          "file": "scripts/lib/svg.mjs",
           "line": 4,
           "evidence": "import { buildMesh, groundGrid, project } from './geometry.mjs'"
         }
@@ -275,18 +275,18 @@
       "group": "page",
       "kind": "entry",
       "files": [
-        "skills/show-me/scripts/render.mjs"
+        "scripts/render.mjs"
       ],
       "whatItDoes": "Puts the page together. It refuses to run on a map that has not passed the gate. Then it measures, places, draws, and folds everything into one file that needs no server and no build step.",
       "howItsBuilt": "Runs the gate first, resolves globs to measurements, calls layout and the scene emitter, then inlines the stylesheet, the interaction layer and the map itself as pure ASCII so no host charset can corrupt it.",
       "citations": [
         {
-          "file": "skills/show-me/scripts/render.mjs",
+          "file": "scripts/render.mjs",
           "line": 16,
           "evidence": "import { validateMap, resolveNodeFiles } from './validate.mjs'"
         },
         {
-          "file": "skills/show-me/scripts/render.mjs",
+          "file": "scripts/render.mjs",
           "line": 218,
           "evidence": "const css = readFileSync(join(assets, 'app.css'), 'utf8')"
         }
@@ -300,13 +300,13 @@
       "group": "place",
       "kind": "entry",
       "files": [
-        "skills/show-me/scripts/layout-test.mjs"
+        "scripts/layout-test.mjs"
       ],
       "whatItDoes": "Proof that a connection never enters a building. That single property is the only reason the scene can draw every line before every building without sorting them by depth.",
       "howItsBuilt": "Recomputes the layout for every shipped map and asserts no route enters a footprint, no footprints overlap, everything falls inside the frame, districts are contiguous, and two runs agree exactly.",
       "citations": [
         {
-          "file": "skills/show-me/scripts/layout-test.mjs",
+          "file": "scripts/layout-test.mjs",
           "line": 16,
           "evidence": "import { layout } from './lib/layout.mjs'"
         }
@@ -320,18 +320,18 @@
       "group": "page",
       "kind": "ui",
       "files": [
-        "skills/show-me/assets/app.js"
+        "assets/app.js"
       ],
       "whatItDoes": "Everything the page does once it is open. Panning and zooming, clicking a structure to read about it, and playing a traced path one step at a time. The pace is set by how long each step takes to read.",
       "howItsBuilt": "Vanilla JavaScript over the pre-computed scene. Flow playback gives each step a travel time from its path length and a dwell from its own note, and scrolls the panel so the sentence explaining a hop is on screen while that hop is lit.",
       "citations": [
         {
-          "file": "skills/show-me/assets/app.js",
+          "file": "assets/app.js",
           "line": 192,
           "evidence": "const READING_WORDS_PER_SECOND = 3.2;   // unhurried prose, not skimming"
         },
         {
-          "file": "skills/show-me/assets/app.js",
+          "file": "assets/app.js",
           "line": 292,
           "evidence": "function scrollStepIntoView(el) {"
         }
@@ -345,13 +345,13 @@
       "group": "page",
       "kind": "config",
       "files": [
-        "skills/show-me/assets/app.css"
+        "assets/app.css"
       ],
       "whatItDoes": "How the page looks in either colour scheme, and the panel layout around the map. Colour never encodes a category, so the picture survives being printed or read by someone colour-blind.",
       "howItsBuilt": "One complete palette as custom properties, redefined for dark under both a media query and an explicit attribute so every combination of viewer preference resolves. Components only ever read tokens.",
       "citations": [
         {
-          "file": "skills/show-me/assets/app.css",
+          "file": "assets/app.css",
           "line": 1,
           "evidence": "@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono"
         }
@@ -368,13 +368,13 @@
       "group": "out",
       "kind": "store",
       "files": [
-        "skills/show-me/examples/*.system-map.json"
+        "examples/*.system-map.json"
       ],
       "whatItDoes": "Three finished maps, which double as the fixtures both guard scripts run against. One of them is this map: the skill described by itself.",
       "howItsBuilt": "Plain JSON conforming to the contract. Each cites paths in the repository it was built from, so a guard pointed at a different checkout skips it with a note rather than failing.",
       "citations": [
         {
-          "file": "skills/show-me/examples/show-me.system-map.json",
+          "file": "examples/show-me.system-map.json",
           "line": 2,
           "evidence": "\"schema\": \"system-map/v1\""
         }
@@ -392,18 +392,18 @@
       "group": "out",
       "kind": "service",
       "files": [
-        "skills/show-me/scripts/twin.mjs"
+        "scripts/twin.mjs"
       ],
       "whatItDoes": "Writes the same map out as a document instead of a picture. The picture is better for grasping shape; the words are better for everything afterwards. They can be searched, compared between two versions, reviewed alongside a code change, and read where there is no browser.",
       "howItsBuilt": "Takes the same data file the page is drawn from, re-runs the gate, resolves the file globs for their counts, and emits Markdown: a header table, the reading order, one section per structure with its connections and the citation behind each, then the traced flows and a provenance note.",
       "citations": [
         {
-          "file": "skills/show-me/scripts/twin.mjs",
+          "file": "scripts/twin.mjs",
           "line": 33,
           "evidence": "export async function twin(map, repoRoot) {"
         },
         {
-          "file": "skills/show-me/scripts/twin.mjs",
+          "file": "scripts/twin.mjs",
           "line": 243,
           "evidence": "writeFileSync(resolve(flags.get('out')), text, 'utf8')"
         }
@@ -417,18 +417,18 @@
       "group": "out",
       "kind": "service",
       "files": [
-        "skills/show-me/scripts/preview.mjs"
+        "scripts/preview.mjs"
       ],
       "whatItDoes": "Makes a small moving picture of one traced path, for a README or a message. A still image cannot show what this tool is for. The interesting part is a payload walking a real route, so the preview moves.",
       "howItsBuilt": "Runs the same placement the page uses, frames only the structures the chosen flow touches, and emits an animated SVG. Each hop gets a lit copy of its route and a token timed to arrive in turn. Vector rather than a recording, so it needs no browser to capture and cannot drift from the map.",
       "citations": [
         {
-          "file": "skills/show-me/scripts/preview.mjs",
+          "file": "scripts/preview.mjs",
           "line": 34,
           "evidence": "export async function preview(map, repoRoot, flowId, { step = 1200 } = {}) {"
         },
         {
-          "file": "skills/show-me/scripts/preview.mjs",
+          "file": "scripts/preview.mjs",
           "line": 53,
           "evidence": "const travel = round((step * 0.62) / cycle)"
         }
@@ -442,7 +442,7 @@
       "to": "SCH",
       "kind": "import",
       "citation": {
-        "file": "skills/show-me/SKILL.md",
+        "file": "SKILL.md",
         "line": 57,
         "evidence": "Read `references/schema.md` before writing any JSON"
       },
@@ -454,7 +454,7 @@
       "to": "EXT",
       "kind": "import",
       "citation": {
-        "file": "skills/show-me/SKILL.md",
+        "file": "SKILL.md",
         "line": 58,
         "evidence": "Read `references/extraction.md` for how to find structure by reading"
       },
@@ -466,7 +466,7 @@
       "to": "VIS",
       "kind": "import",
       "citation": {
-        "file": "skills/show-me/SKILL.md",
+        "file": "SKILL.md",
         "line": 60,
         "evidence": "Read `references/visual-language.md` for what each shape and channel means"
       },
@@ -477,7 +477,7 @@
       "to": "VAL",
       "kind": "call",
       "citation": {
-        "file": "skills/show-me/SKILL.md",
+        "file": "SKILL.md",
         "line": 235,
         "evidence": "node scripts/validate.mjs <map>.json --repo <worktree>"
       },
@@ -489,7 +489,7 @@
       "to": "RND",
       "kind": "call",
       "citation": {
-        "file": "skills/show-me/SKILL.md",
+        "file": "SKILL.md",
         "line": 238,
         "evidence": "node scripts/render.mjs   <map>.json --repo <worktree> --out <out>.html"
       },
@@ -501,7 +501,7 @@
       "to": "MET",
       "kind": "call",
       "citation": {
-        "file": "skills/show-me/scripts/validate.mjs",
+        "file": "scripts/validate.mjs",
         "line": 398,
         "evidence": "const { expandGlobs, fileMetrics, discoverTestSiblings } = await import('./lib/metrics.mjs')"
       },
@@ -513,7 +513,7 @@
       "to": "VAL",
       "kind": "call",
       "citation": {
-        "file": "skills/show-me/scripts/render.mjs",
+        "file": "scripts/render.mjs",
         "line": 16,
         "evidence": "import { validateMap, resolveNodeFiles } from './validate.mjs'"
       },
@@ -525,7 +525,7 @@
       "to": "LAY",
       "kind": "call",
       "citation": {
-        "file": "skills/show-me/scripts/render.mjs",
+        "file": "scripts/render.mjs",
         "line": 17,
         "evidence": "import { layout } from './lib/layout.mjs'"
       },
@@ -536,7 +536,7 @@
       "to": "SVG",
       "kind": "call",
       "citation": {
-        "file": "skills/show-me/scripts/render.mjs",
+        "file": "scripts/render.mjs",
         "line": 18,
         "evidence": "import { renderScene, escapeHtml as esc, DEFAULT_SHAPE }"
       },
@@ -547,7 +547,7 @@
       "to": "GEO",
       "kind": "call",
       "citation": {
-        "file": "skills/show-me/scripts/render.mjs",
+        "file": "scripts/render.mjs",
         "line": 19,
         "evidence": "import { massOf } from './lib/geometry.mjs'"
       },
@@ -558,7 +558,7 @@
       "to": "CSS",
       "kind": "read",
       "citation": {
-        "file": "skills/show-me/scripts/render.mjs",
+        "file": "scripts/render.mjs",
         "line": 218,
         "evidence": "const css = readFileSync(join(assets, 'app.css'), 'utf8')"
       },
@@ -570,7 +570,7 @@
       "to": "APP",
       "kind": "read",
       "citation": {
-        "file": "skills/show-me/scripts/render.mjs",
+        "file": "scripts/render.mjs",
         "line": 219,
         "evidence": "const js = readFileSync(join(assets, 'app.js'), 'utf8')"
       },
@@ -582,7 +582,7 @@
       "to": "GEO",
       "kind": "call",
       "citation": {
-        "file": "skills/show-me/scripts/lib/layout.mjs",
+        "file": "scripts/lib/layout.mjs",
         "line": 16,
         "evidence": "import { massOf, project } from './geometry.mjs'"
       },
@@ -593,7 +593,7 @@
       "to": "GEO",
       "kind": "call",
       "citation": {
-        "file": "skills/show-me/scripts/lib/svg.mjs",
+        "file": "scripts/lib/svg.mjs",
         "line": 4,
         "evidence": "import { buildMesh, groundGrid, project } from './geometry.mjs'"
       },
@@ -604,7 +604,7 @@
       "to": "VAL",
       "kind": "call",
       "citation": {
-        "file": "skills/show-me/scripts/self-test.mjs",
+        "file": "scripts/self-test.mjs",
         "line": 14,
         "evidence": "import { validateMap, resolveNodeFiles } from './validate.mjs'"
       },
@@ -616,7 +616,7 @@
       "to": "EXM",
       "kind": "read",
       "citation": {
-        "file": "skills/show-me/scripts/self-test.mjs",
+        "file": "scripts/self-test.mjs",
         "line": 26,
         "evidence": "for (const name of readdirSync(examples).filter((f) => f.endsWith('.system-map.json')).sort())"
       },
@@ -628,7 +628,7 @@
       "to": "LAY",
       "kind": "call",
       "citation": {
-        "file": "skills/show-me/scripts/layout-test.mjs",
+        "file": "scripts/layout-test.mjs",
         "line": 16,
         "evidence": "import { layout } from './lib/layout.mjs'"
       },
@@ -639,7 +639,7 @@
       "to": "EXM",
       "kind": "read",
       "citation": {
-        "file": "skills/show-me/scripts/layout-test.mjs",
+        "file": "scripts/layout-test.mjs",
         "line": 19,
         "evidence": "const examples = join(here, '..', 'examples')"
       },
@@ -650,7 +650,7 @@
       "to": "GEO",
       "kind": "import",
       "citation": {
-        "file": "skills/show-me/references/visual-language.md",
+        "file": "references/visual-language.md",
         "line": 37,
         "evidence": "These formulas live in `scripts/lib/geometry.mjs`"
       },
@@ -661,7 +661,7 @@
       "to": "MET",
       "kind": "import",
       "citation": {
-        "file": "skills/show-me/references/extraction.md",
+        "file": "references/extraction.md",
         "line": 96,
         "evidence": "REPO=/path/to/worktree node -e \"import('./scripts/lib/metrics.mjs')"
       },
@@ -674,7 +674,7 @@
       "label": "gate first",
       "confidence": "verified",
       "citation": {
-        "file": "skills/show-me/scripts/twin.mjs",
+        "file": "scripts/twin.mjs",
         "line": 18,
         "evidence": "import { validateMap, resolveNodeFiles, scopeCoverage } from './validate.mjs'"
       }
@@ -685,7 +685,7 @@
       "kind": "import",
       "confidence": "verified",
       "citation": {
-        "file": "skills/show-me/scripts/twin.mjs",
+        "file": "scripts/twin.mjs",
         "line": 19,
         "evidence": "import { massOf } from './lib/geometry.mjs'"
       }
@@ -697,7 +697,7 @@
       "label": "gate first",
       "confidence": "verified",
       "citation": {
-        "file": "skills/show-me/scripts/preview.mjs",
+        "file": "scripts/preview.mjs",
         "line": 18,
         "evidence": "import { validateMap, resolveNodeFiles } from './validate.mjs'"
       }
@@ -709,7 +709,7 @@
       "label": "same placement",
       "confidence": "verified",
       "citation": {
-        "file": "skills/show-me/scripts/preview.mjs",
+        "file": "scripts/preview.mjs",
         "line": 19,
         "evidence": "import { layout } from './lib/layout.mjs'"
       }
@@ -720,7 +720,7 @@
       "kind": "call",
       "confidence": "verified",
       "citation": {
-        "file": "skills/show-me/scripts/preview.mjs",
+        "file": "scripts/preview.mjs",
         "line": 20,
         "evidence": "import { buildMesh, project } from './lib/geometry.mjs'"
       }
@@ -731,7 +731,7 @@
       "kind": "import",
       "confidence": "verified",
       "citation": {
-        "file": "skills/show-me/scripts/preview.mjs",
+        "file": "scripts/preview.mjs",
         "line": 21,
         "evidence": "import { tagText, DEFAULT_SHAPE, escapeHtml as esc } from './lib/svg.mjs'"
       }
@@ -750,7 +750,7 @@
           "to": "RND",
           "note": "The pipeline hands the map to the assembler, which is the only step that produces a file anyone looks at.",
           "citation": {
-            "file": "skills/show-me/SKILL.md",
+            "file": "SKILL.md",
             "line": 238,
             "evidence": "node scripts/render.mjs   <map>.json --repo <worktree> --out <out>.html"
           }
@@ -761,7 +761,7 @@
           "branch": true,
           "note": "The gate runs again first, so a map that fails verification cannot be rendered even by accident.",
           "citation": {
-            "file": "skills/show-me/scripts/render.mjs",
+            "file": "scripts/render.mjs",
             "line": 16,
             "evidence": "import { validateMap, resolveNodeFiles } from './validate.mjs'"
           }
@@ -772,7 +772,7 @@
           "branch": true,
           "note": "Measured file counts and line counts become a footprint and a height, which is why no field can inflate a building.",
           "citation": {
-            "file": "skills/show-me/scripts/render.mjs",
+            "file": "scripts/render.mjs",
             "line": 19,
             "evidence": "import { massOf } from './lib/geometry.mjs'"
           }
@@ -783,7 +783,7 @@
           "branch": true,
           "note": "Groups become raised bands and every connection is routed through the corridors between buildings.",
           "citation": {
-            "file": "skills/show-me/scripts/render.mjs",
+            "file": "scripts/render.mjs",
             "line": 17,
             "evidence": "import { layout } from './lib/layout.mjs'"
           }
@@ -794,7 +794,7 @@
           "branch": true,
           "note": "Final coordinates are emitted as inline SVG, so the browser does no layout work and two runs are diffable.",
           "citation": {
-            "file": "skills/show-me/scripts/render.mjs",
+            "file": "scripts/render.mjs",
             "line": 18,
             "evidence": "import { renderScene, escapeHtml as esc, DEFAULT_SHAPE }"
           }
@@ -805,7 +805,7 @@
           "branch": true,
           "note": "The stylesheet, the interaction layer and the map itself are inlined as pure ASCII, leaving one portable file.",
           "citation": {
-            "file": "skills/show-me/scripts/render.mjs",
+            "file": "scripts/render.mjs",
             "line": 219,
             "evidence": "const js = readFileSync(join(assets, 'app.js'), 'utf8')"
           }
@@ -825,7 +825,7 @@
           "branch": true,
           "note": "It picks whichever shipped example resolves here, so the gate can still be tested from a checkout missing the others.",
           "citation": {
-            "file": "skills/show-me/scripts/self-test.mjs",
+            "file": "scripts/self-test.mjs",
             "line": 26,
             "evidence": "for (const name of readdirSync(examples).filter((f) => f.endsWith('.system-map.json')).sort())"
           }
@@ -835,7 +835,7 @@
           "to": "VAL",
           "note": "Each case clones that map, breaks exactly one thing, and asserts the gate rejects it for the expected reason.",
           "citation": {
-            "file": "skills/show-me/scripts/self-test.mjs",
+            "file": "scripts/self-test.mjs",
             "line": 14,
             "evidence": "import { validateMap, resolveNodeFiles } from './validate.mjs'"
           }
@@ -846,7 +846,7 @@
           "branch": true,
           "note": "Glob resolution is checked too, because a structure pointing at no files cannot be drawn or measured at all.",
           "citation": {
-            "file": "skills/show-me/scripts/validate.mjs",
+            "file": "scripts/validate.mjs",
             "line": 398,
             "evidence": "const { expandGlobs, fileMetrics, discoverTestSiblings } = await import('./lib/metrics.mjs')"
           }
@@ -866,7 +866,7 @@
           "branch": true,
           "note": "It runs over every shipped map, skipping any whose citations do not resolve against the repository given.",
           "citation": {
-            "file": "skills/show-me/scripts/layout-test.mjs",
+            "file": "scripts/layout-test.mjs",
             "line": 19,
             "evidence": "const examples = join(here, '..', 'examples')"
           }
@@ -876,7 +876,7 @@
           "to": "LAY",
           "note": "Placement and routing are recomputed, then every segment is tested against every footprint for intersection.",
           "citation": {
-            "file": "skills/show-me/scripts/layout-test.mjs",
+            "file": "scripts/layout-test.mjs",
             "line": 16,
             "evidence": "import { layout } from './lib/layout.mjs'"
           }
@@ -887,7 +887,7 @@
           "branch": true,
           "note": "Projection and mass come from geometry, so a change to the height scale is caught by this test as well.",
           "citation": {
-            "file": "skills/show-me/scripts/lib/layout.mjs",
+            "file": "scripts/lib/layout.mjs",
             "line": 16,
             "evidence": "import { massOf, project } from './geometry.mjs'"
           }
