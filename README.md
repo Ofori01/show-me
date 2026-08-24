@@ -17,10 +17,6 @@ from the real source, connections traced through actual call and data paths, eac
 part explained in plain English — and **every claim citing a file, a line, and
 the text found at that line.**
 
-It works on any language, because nothing in it parses source code. The agent
-reads; the scripts only do what reading reliably gets wrong — checking every
-citation, counting lines so sizes are measured rather than guessed, and drawing a
-scene whose connections provably never cross a building.
 
 ## Why that matters
 
@@ -67,13 +63,6 @@ command.
 `SKILL.md` is what the agent follows; `references/` explains the data contract,
 how to read a codebase, and what every shape means.
 
-## Credit
-
-The visual language came from a "codebase as interactive isometric diagram"
-reference. [inkboard/system-atlas](https://github.com/inkboard/system-atlas) was
-built from the same reference for the opposite purpose — designing a system in
-conversation rather than reading one that exists. Readable name tags, the
-generated text twin, and progressive-disclosure chapters are its ideas.
 
 ## License
 
