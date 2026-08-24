@@ -41,6 +41,10 @@ Two rules govern the whole schema:
                   to be.",
   "readingHint": "One sentence on how to read the map.",
 
+  // Optional. Where the interactive map is published. The text twin links to
+  // it, so a reader who wants to click rather than read has somewhere to go.
+  "mapUrl": "https://example.github.io/repo/",
+
   // The region you set out to map, as globs. Strongly recommended: it is what
   // makes coverage checkable instead of a claim. validate.mjs reports every
   // file inside it that no structure claims, which is the check that catches a

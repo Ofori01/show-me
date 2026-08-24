@@ -1,0 +1,1492 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="the tool that drew this, drawn by itself - 16 structures, 22 cited connections, measured from source.">
+<meta name="color-scheme" content="light dark">
+<title>Show me</title>
+</head>
+<body>
+<title>Show me</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+/* ---- tokens -------------------------------------------------------------
+   Light is the complete palette on bare :root. Dark redefines only what
+   changes, guarded so an explicit light choice always wins over the media
+   query, and repeated for [data-theme="dark"] so the toggle wins both ways. */
+:root {
+  --ink:        #1c1a12;
+  --ink-soft:   #4a4636;
+  --ink-faint:  #8a8570;
+  --paper:      #dcd7bb;
+  --paper-2:    #d2ccab;
+  --paper-3:    #c8c19c;
+  --rule:       #b5ad86;
+  --rule-soft:  #c4bd9b;
+  --accent:     #1c1a12;
+  --accent-ink: #dcd7bb;
+  --face-top:   #cfc8a4;
+  --face-left:  #b8b088;
+  --face-right: #a49b71;
+  --ghost-line: #8a8570;
+  --flow:       #1c1a12;
+  --warn:       #8a4a1f;
+  --shadow:     rgba(28, 26, 18, 0.14);
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink:        #d9e2f0;
+    --ink-soft:   #8d9bb3;
+    --ink-faint:  #5b6880;
+    --paper:      #080b11;
+    --paper-2:    #0d121b;
+    --paper-3:    #121924;
+    --rule:       #263248;
+    --rule-soft:  #1a2331;
+    --accent:     #4d9bff;
+    --accent-ink: #060a10;
+    --face-top:   #26324a;
+    --face-left:  #1a2436;
+    --face-right: #131b29;
+    --ghost-line: #46587a;
+    --flow:       #4d9bff;
+    --warn:       #e0a355;
+    --shadow:     rgba(0, 0, 0, 0.5);
+  }
+}
+
+:root[data-theme="dark"] {
+  --ink:        #d9e2f0;
+  --ink-soft:   #8d9bb3;
+  --ink-faint:  #5b6880;
+  --paper:      #080b11;
+  --paper-2:    #0d121b;
+  --paper-3:    #121924;
+  --rule:       #263248;
+  --rule-soft:  #1a2331;
+  --accent:     #4d9bff;
+  --accent-ink: #060a10;
+  --face-top:   #26324a;
+  --face-left:  #1a2436;
+  --face-right: #131b29;
+  --ghost-line: #46587a;
+  --flow:       #4d9bff;
+  --warn:       #e0a355;
+  --shadow:     rgba(0, 0, 0, 0.5);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- shell ------------------------------------------------------------- */
+.app {
+  display: grid;
+  grid-template-columns: 232px minmax(0, 1fr) 340px;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "statbar statbar statbar"
+    "sidebar stage   explainer"
+    "legend  legend  legend";
+  height: 100vh;
+  min-height: 560px;
+}
+
+.statbar {
+  grid-area: statbar;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  border-bottom: 1px solid var(--rule);
+  background: var(--paper-2);
+}
+
+.stat {
+  padding: 10px 18px;
+  border-right: 1px solid var(--rule-soft);
+  min-width: 0;
+}
+.stat--wide { flex: 1 1 200px; }
+.stat__label {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.stat__value {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stat__value--strong { font-size: 15px; font-weight: 700; }
+
+.controls {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+}
+
+button, select {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--paper-3);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: 6px 11px;
+  cursor: pointer;
+}
+button:hover, select:hover { border-color: var(--ink-soft); }
+button:focus-visible, select:focus-visible, .node-row:focus-visible, .tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+/* ---- sidebar ----------------------------------------------------------- */
+.sidebar {
+  grid-area: sidebar;
+  border-right: 1px solid var(--rule);
+  overflow-y: auto;
+  padding: 14px 0 24px;
+  background: var(--paper);
+}
+.sidebar__title {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 12px 14px 6px;
+}
+.node-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: calc(100% - 20px);
+  margin: 3px 10px;
+  padding: 7px 9px;
+  text-align: left;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 11px;
+  background: transparent;
+  border: 1px solid var(--rule-soft);
+}
+.node-row:hover { background: var(--paper-2); }
+.node-row[aria-current="true"] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+.node-row__id {
+  flex: 0 0 22px;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--ink-faint);
+}
+.node-row[aria-current="true"] .node-row__id,
+.node-row[aria-current="true"] .node-row__count { color: var(--accent-ink); opacity: 0.75; }
+.node-row__label { flex: 1 1 auto; min-width: 0; }
+.node-row__count { flex: 0 0 auto; font-size: 9px; color: var(--ink-faint); }
+
+/* ---- stage ------------------------------------------------------------- */
+.stage {
+  grid-area: stage;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 50% 30%, var(--paper-2) 0%, var(--paper) 70%);
+  touch-action: none;
+}
+.stage__head {
+  position: absolute;
+  top: 14px;
+  left: 18px;
+  z-index: 2;
+  pointer-events: none;
+  /* Leave the zoom controls their gutter; a long subtitle wraps instead of
+     sliding underneath them. */
+  max-width: calc(100% - 80px);
+}
+.stage__eyebrow {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.stage__title { font-size: 17px; font-weight: 500; line-height: 1.3; text-wrap: balance; }
+.stage__zoom {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.stage__zoom button { width: 26px; padding: 4px 0; text-align: center; }
+.stage__hint {
+  position: absolute;
+  bottom: 10px;
+  left: 18px;
+  right: 18px;
+  z-index: 2;
+  font-size: 9px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  pointer-events: none;
+}
+
+#scene { display: block; width: 100%; height: 100%; cursor: grab; }
+#scene.is-panning { cursor: grabbing; }
+
+/* ---- scene paint ------------------------------------------------------- */
+.ground path { fill: none; stroke: var(--rule); stroke-width: 0.4; opacity: 0.4; }
+
+.district__pad {
+  fill: var(--paper-3);
+  stroke: var(--rule-soft);
+  stroke-width: 0.5;
+  opacity: 0.75;
+}
+.district__label {
+  fill: var(--ink-faint);
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.13em;
+  text-anchor: end;
+}
+.district.is-active .district__pad { stroke: var(--accent); opacity: 1; }
+.district.is-active .district__label { fill: var(--ink); }
+
+.edge-label { opacity: 0; pointer-events: none; }
+.edge-label.is-shown { opacity: 1; }
+.edge-label rect { fill: var(--paper); stroke: var(--rule); stroke-width: 0.5; }
+.edge-label text {
+  fill: var(--ink);
+  font-family: var(--mono);
+  font-size: 8px;
+  text-anchor: middle;
+}
+
+.face { stroke: var(--ink); stroke-width: 0.7; stroke-linejoin: round; }
+.face--top   { fill: var(--face-top); }
+.face--left  { fill: var(--face-left); }
+.face--right { fill: var(--face-right); }
+.face--ghost { fill: none; stroke: var(--ghost-line); stroke-width: 0.8; stroke-dasharray: 3 3; }
+.striation { fill: none; stroke: var(--ink); stroke-width: 0.35; opacity: 0.3; }
+.hatch { stroke: none; opacity: 0.5; pointer-events: none; }
+.hatch-line { stroke: var(--ink); stroke-width: 0.55; opacity: 0.4; }
+.untested { fill: none; stroke: var(--warn); stroke-width: 1.1; }
+
+.bldg { cursor: pointer; }
+.bldg__badge rect { fill: var(--paper); stroke: var(--ink); stroke-width: 0.7; }
+.bldg__badge text {
+  fill: var(--ink);
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  text-anchor: middle;
+  pointer-events: none;
+}
+.bldg__tag { pointer-events: none; }
+.bldg__tag rect { fill: var(--paper); stroke: var(--ink); stroke-width: 0.8; }
+.bldg__tag text {
+  fill: var(--ink);
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.07em;
+  text-anchor: middle;
+}
+.bldg__tag--ghost rect { stroke: var(--ghost-line); stroke-dasharray: 3 2; }
+.bldg__tag--ghost text { fill: var(--ink-soft); }
+.bldg.is-selected .bldg__tag rect { fill: var(--accent); stroke: var(--accent); }
+.bldg.is-selected .bldg__tag text { fill: var(--accent-ink); }
+
+.bldg:hover .face, .bldg:focus-visible .face { stroke-width: 1.3; }
+.bldg.is-selected .bldg__badge rect { fill: var(--accent); stroke: var(--accent); }
+.bldg.is-selected .bldg__badge text { fill: var(--accent-ink); }
+.bldg.is-selected .face { stroke: var(--accent); stroke-width: 1.5; }
+.bldg.is-dimmed { opacity: 0.22; }
+
+.edge {
+  fill: none;
+  stroke: var(--ink-soft);
+  stroke-width: 1.35;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.edge--read   { stroke-width: 1.05; }
+.edge--write  { stroke-width: 2.2; }
+.edge--http   { stroke-dasharray: 5 3; }
+.edge--import { stroke-dasharray: 1 3; opacity: 0.45; }
+.edge--inferred { stroke-dasharray: 4 4; opacity: 0.45; }
+.edge.is-active { stroke: var(--accent); stroke-width: 2.1; opacity: 1; }
+/* The step being read, distinct from the rest of the lit path. */
+.edge.is-current { stroke: var(--accent); stroke-width: 3.2; opacity: 1; }
+.edge.is-dimmed { opacity: 0.1; }
+.arrowhead { fill: var(--ink-soft); }
+.arrowhead--strong { fill: var(--ink); }
+
+.flow-token {
+  fill: var(--flow);
+  stroke: var(--paper);
+  stroke-width: 1;
+}
+.flow-token--branch { opacity: 0.6; }
+
+/* ---- chapters ---------------------------------------------------------- */
+.is-unrevealed { display: none; }
+
+/* New in this chapter: a dashed halo, so what changed is findable at a glance. */
+.bldg.is-fresh .face--top {
+  stroke-dasharray: 4 2.5;
+  stroke-width: 1.7;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .bldg.is-fresh .face--top { animation: fresh 2.4s ease-in-out infinite; }
+  @keyframes fresh { 0%, 100% { stroke-width: 1.3; } 50% { stroke-width: 2.1; } }
+}
+
+.chapter-nav { display: inline-flex; gap: 6px; }
+
+.rail {
+  position: absolute;
+  bottom: 34px;
+  left: 18px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.rail__steps { display: flex; gap: 4px; }
+.rail__step {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  font-size: 9px;
+  text-align: center;
+  border-radius: 2px;
+}
+.rail__step[aria-current="true"] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+.rail__title {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.stage__counter {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-top: 2px;
+}
+
+/* Dim enough to read as "not yet", legible enough to still be a signpost. */
+.node-row.is-unrevealed { opacity: 0.62; }
+.node-row.is-unrevealed .node-row__label { font-style: italic; }
+.node-row.is-unrevealed .node-row__count { display: none; }
+.node-row__when {
+  flex: 0 0 auto;
+  font-size: 8.5px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+  border: 1px solid var(--rule-soft);
+  border-radius: 2px;
+  padding: 1px 4px;
+}
+
+.chip {
+  display: inline-block;
+  font-size: 10px;
+  text-transform: none;
+  letter-spacing: 0;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: 3px 7px;
+  margin: 0 4px 4px 0;
+  background: var(--paper-2);
+}
+.chip:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ---- explainer --------------------------------------------------------- */
+.explainer {
+  grid-area: explainer;
+  border-left: 1px solid var(--rule);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--paper);
+}
+.tabs { display: flex; border-bottom: 1px solid var(--rule); }
+.tab {
+  flex: 1 1 0;
+  border: none;
+  border-right: 1px solid var(--rule-soft);
+  border-radius: 0;
+  background: var(--paper-2);
+  padding: 10px 6px;
+  font-size: 9px;
+}
+.tab[aria-selected="true"] { background: var(--paper); color: var(--ink); box-shadow: inset 0 -2px 0 var(--accent); }
+.panel { overflow-y: auto; padding: 16px 18px 28px; flex: 1 1 auto; }
+.panel__eyebrow {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 18px 0 4px;
+}
+.panel__eyebrow:first-child { margin-top: 0; }
+.panel__title { font-size: 16px; font-weight: 500; margin: 0 0 10px; }
+.panel p { margin: 0 0 10px; color: var(--ink-soft); }
+.panel p.lead { color: var(--ink); }
+.panel hr { border: none; border-top: 1px solid var(--rule-soft); margin: 16px 0; }
+
+.metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--rule-soft); border: 1px solid var(--rule-soft); }
+.metric { background: var(--paper); padding: 7px 9px; }
+.metric__label { font-size: 8.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); }
+.metric__value { font-size: 13px; font-weight: 500; }
+
+.cite {
+  display: block;
+  font-size: 10px;
+  color: var(--ink-soft);
+  background: var(--paper-2);
+  border-left: 2px solid var(--rule);
+  padding: 6px 9px;
+  margin: 0 0 5px;
+  overflow-wrap: anywhere;
+}
+.cite__evidence { color: var(--ink); }
+.tag {
+  display: inline-block;
+  font-size: 8.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: 2px 6px;
+  margin: 0 4px 4px 0;
+  color: var(--ink-soft);
+}
+.tag--warn { color: var(--warn); border-color: var(--warn); }
+.concern { color: var(--warn); }
+
+.hop { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; margin: 10px 0 3px; }
+.hop__jump {
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 10.5px;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ink-soft);
+  text-align: left;
+}
+.hop__jump strong { color: var(--ink); border-bottom: 1px solid var(--rule); }
+.hop__jump:hover strong { border-bottom-color: var(--accent); color: var(--accent); }
+.hop__label { font-size: 9px; color: var(--ink-faint); }
+
+.steps { list-style: none; margin: 0; padding: 0; counter-reset: step; }
+.step {
+  display: block;
+  width: 100%;
+  text-align: left;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 10.5px;
+  background: transparent;
+  border: 1px solid var(--rule-soft);
+  padding: 7px 9px;
+  margin: 0 0 4px;
+}
+.step[aria-current="true"] {
+  border-color: var(--accent);
+  background: var(--paper-2);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+.panel { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { .panel { scroll-behavior: auto; } }
+.step__hop { color: var(--ink-faint); font-size: 9px; letter-spacing: 0.06em; }
+.step__branch { color: var(--warn); }
+
+/* ---- legend ------------------------------------------------------------ */
+.legend {
+  grid-area: legend;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  align-items: center;
+  padding: 9px 18px;
+  border-top: 1px solid var(--rule);
+  background: var(--paper-2);
+  font-size: 9.5px;
+  color: var(--ink-soft);
+}
+.legend__item { display: inline-flex; align-items: center; gap: 6px; }
+.legend__item svg { display: block; overflow: visible; }
+.legend__group { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.legend__sep { color: var(--ink-faint); }
+
+/* ---- narrow ------------------------------------------------------------ */
+@media (max-width: 1000px) {
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 60vh auto auto auto;
+    grid-template-areas: "statbar" "stage" "explainer" "sidebar" "legend";
+    height: auto;
+  }
+  .sidebar { border-right: none; border-top: 1px solid var(--rule); max-height: 40vh; }
+  .explainer { border-left: none; border-top: 1px solid var(--rule); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flow-token { display: none; }
+}
+</style>
+<div class="app">
+  <header class="statbar">
+    <div class="stat stat--wide"><div class="stat__label">repository</div><div class="stat__value stat__value--strong">show-me / Show me</div></div><div class="stat"><div class="stat__label">revision</div><div class="stat__value">main @ af7d5f27</div></div><div class="stat"><div class="stat__label">structures</div><div class="stat__value">16 in 6 groups</div></div><div class="stat"><div class="stat__label">connections</div><div class="stat__value">22</div></div><div class="stat"><div class="stat__label">source measured</div><div class="stat__value">16 files / 5,337 LOC</div></div><div class="stat"><div class="stat__label">traced flows</div><div class="stat__value">3</div></div><div class="stat"><div class="stat__label">chapters</div><div class="stat__value">6</div></div>
+    <div class="controls"><select id="flow-select" aria-label="Choose a traced flow"><option value="render">From map to page</option><option value="gate">Rejecting a fabricated map</option><option value="invariant">Proving edges never cross</option></select><button id="toggle-flow" type="button" aria-pressed="false">&#9654; Play flow</button><button id="trace-step" type="button">Trace one step</button><button id="reset-view" type="button">Reset view</button></div>
+  </header>
+
+  <nav class="sidebar" aria-label="Structures"><div class="sidebar__title">WHAT THE AGENT READS</div><button class="node-row" type="button" data-node="INS" data-reveal="0" aria-current="false"><span class="node-row__id">INS</span><span class="node-row__label">The instructions</span><span class="node-row__count">1</span></button><button class="node-row" type="button" data-node="SCH" data-reveal="0" aria-current="false"><span class="node-row__id">SCH</span><span class="node-row__label">The contract</span><span class="node-row__count">1</span></button><button class="node-row" type="button" data-node="EXT" data-reveal="0" aria-current="false"><span class="node-row__id">EXT</span><span class="node-row__label">How to read</span><span class="node-row__count">1</span></button><button class="node-row" type="button" data-node="VIS" data-reveal="0" aria-current="false"><span class="node-row__id">VIS</span><span class="node-row__label">The visual language</span><span class="node-row__count">1</span></button><div class="sidebar__title">THE CITATION GATE</div><button class="node-row" type="button" data-node="VAL" data-reveal="1" aria-current="false"><span class="node-row__id">VAL</span><span class="node-row__label">The citation gate</span><span class="node-row__count">1</span></button><button class="node-row" type="button" data-node="GT" data-reveal="1" aria-current="false"><span class="node-row__id">GT</span><span class="node-row__label">The gate self-test</span><span class="node-row__count">1</span></button><div class="sidebar__title">MEASURING</div><button class="node-row" type="button" data-node="MET" data-reveal="2" aria-current="false"><span class="node-row__id">MET</span><span class="node-row__label">Measuring</span><span class="node-row__count">1</span></button><button class="node-row" type="button" data-node="GEO" data-reveal="2" aria-current="false"><span class="node-row__id">GEO</span><span class="node-row__label">Projection and mass</span><span class="node-row__count">1</span></button><div class="sidebar__title">PLACING AND DRAWING</div><button class="node-row" type="button" data-node="LAY" data-reveal="3" aria-current="false"><span class="node-row__id">LAY</span><span class="node-row__label">Placement and routing</span><span class="node-row__count">1</span></button><button class="node-row" type="button" data-node="SVG" data-reveal="3" aria-current="false"><span class="node-row__id">SVG</span><span class="node-row__label">The scene</span><span class="node-row__count">1</span></button><button class="node-row" type="button" data-node="LT" data-reveal="3" aria-current="false"><span class="node-row__id">LT</span><span class="node-row__label">The layout invariants</span><span class="node-row__count">1</span></button><div class="sidebar__title">THE PAGE</div><button class="node-row" type="button" data-node="RND" data-reveal="4" aria-current="false"><span class="node-row__id">RND</span><span class="node-row__label">The assembler</span><span class="node-row__count">1</span></button><button class="node-row" type="button" data-node="APP" data-reveal="4" aria-current="false"><span class="node-row__id">APP</span><span class="node-row__label">The interaction layer</span><span class="node-row__count">1</span></button><button class="node-row" type="button" data-node="CSS" data-reveal="4" aria-current="false"><span class="node-row__id">CSS</span><span class="node-row__label">The theme</span><span class="node-row__count">1</span></button><div class="sidebar__title">WHAT COMES OUT</div><button class="node-row" type="button" data-node="EXM" data-reveal="5" aria-current="false"><span class="node-row__id">EXM</span><span class="node-row__label">The example maps</span><span class="node-row__count">1</span></button><button class="node-row" type="button" data-node="TWN" data-reveal="5" aria-current="false"><span class="node-row__id">TWN</span><span class="node-row__label">The text twin</span><span class="node-row__count">1</span></button></nav>
+
+  <main class="stage">
+    <div class="stage__head">
+      <div class="stage__eyebrow">Isometric system map</div>
+      <div class="stage__title">the tool that drew this, drawn by itself</div>
+    </div>
+    <div class="stage__zoom">
+      <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
+      <button id="zoom-out" type="button" aria-label="Zoom out">&minus;</button>
+    </div>
+    <svg id="scene" viewBox="-871.6 -60 1394 664" preserveAspectRatio="xMidYMid meet" role="img"
+  aria-label="Isometric system map of Show me">
+  <defs>
+    
+    <pattern id="hatch-1" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(26)">
+      <line class="hatch-line" x1="0" y1="0" x2="0" y2="7"/>
+    </pattern>
+    <pattern id="hatch-2" width="4.5" height="4.5" patternUnits="userSpaceOnUse" patternTransform="rotate(26)">
+      <line class="hatch-line" x1="0" y1="0" x2="0" y2="4.5"/>
+    </pattern>
+    <pattern id="hatch-3" width="2.8" height="2.8" patternUnits="userSpaceOnUse" patternTransform="rotate(26)">
+      <line class="hatch-line" x1="0" y1="0" x2="0" y2="2.8"/>
+    </pattern>
+    <marker id="arrow-plain" viewBox="0 0 8 8" refX="6.5" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path class="arrowhead" d="M 1 1 L 7 4 L 1 7 z"/>
+    </marker>
+    <marker id="arrow-strong" viewBox="0 0 9 9" refX="7" refY="4.5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="arrowhead arrowhead--strong" d="M 0.5 0.5 L 8 4.5 L 0.5 8.5 z"/>
+    </marker>
+  </defs>
+  <g id="viewport">
+    <g class="ground" aria-hidden="true"><path d="M 0,-34 L -727.6,329.8"/><path d="M 34,-17 L -693.6,346.8"/><path d="M 68,0 L -659.6,363.8"/><path d="M 102,17 L -625.6,380.8"/><path d="M 136,34 L -591.6,397.8"/><path d="M 170,51 L -557.6,414.8"/><path d="M 204,68 L -523.6,431.8"/><path d="M 238,85 L -489.6,448.8"/><path d="M 272,102 L -455.6,465.8"/><path d="M 306,119 L -421.6,482.8"/><path d="M 340,136 L -387.6,499.8"/><path d="M 374,153 L -353.6,516.8"/><path d="M 408,170 L -319.6,533.8"/><path d="M 442,187 L -285.6,550.8"/><path d="M 476,204 L -251.6,567.8"/><path d="M 0,-34 L 496.4,214.2"/><path d="M -34,-17 L 462.4,231.2"/><path d="M -68,0 L 428.4,248.2"/><path d="M -102,17 L 394.4,265.2"/><path d="M -136,34 L 360.4,282.2"/><path d="M -170,51 L 326.4,299.2"/><path d="M -204,68 L 292.4,316.2"/><path d="M -238,85 L 258.4,333.2"/><path d="M -272,102 L 224.4,350.2"/><path d="M -306,119 L 190.4,367.2"/><path d="M -340,136 L 156.4,384.2"/><path d="M -374,153 L 122.4,401.2"/><path d="M -408,170 L 88.4,418.2"/><path d="M -442,187 L 54.4,435.2"/><path d="M -476,204 L 20.4,452.2"/><path d="M -510,221 L -13.6,469.2"/><path d="M -544,238 L -47.6,486.2"/><path d="M -578,255 L -81.6,503.2"/><path d="M -612,272 L -115.6,520.2"/><path d="M -646,289 L -149.6,537.2"/><path d="M -680,306 L -183.6,554.2"/><path d="M -714,323 L -217.6,571.2"/></g>
+    <g class="districts" aria-hidden="true"><g class="district" data-group="read" data-reveal="0"><polygon class="district__pad" points="0,-28.9 438.6,190.4 346.8,236.3 -91.8,17"/><text class="district__label" x="-101.8" y="13">WHAT THE AGENT READS</text></g><g class="district" data-group="gate" data-reveal="1"><polygon class="district__pad" points="-115.6,28.9 91.8,132.6 0,178.5 -207.4,74.8"/><text class="district__label" x="-217.4" y="70.8">THE CITATION GATE</text></g><g class="district" data-group="measure" data-reveal="2"><polygon class="district__pad" points="-231.2,86.7 -23.8,190.4 -115.6,236.3 -323,132.6"/><text class="district__label" x="-333" y="128.6">MEASURING</text></g><g class="district" data-group="place" data-reveal="3"><polygon class="district__pad" points="-346.8,144.5 -23.8,306 -115.6,351.9 -438.6,190.4"/><text class="district__label" x="-448.6" y="186.4">PLACING AND DRAWING</text></g><g class="district" data-group="page" data-reveal="4"><polygon class="district__pad" points="-462.4,202.3 -139.4,363.8 -231.2,409.7 -554.2,248.2"/><text class="district__label" x="-564.2" y="244.2">THE PAGE</text></g><g class="district" data-group="out" data-reveal="5"><polygon class="district__pad" points="-578,260.1 -370.6,363.8 -462.4,409.7 -669.8,306"/><text class="district__label" x="-679.8" y="302">WHAT COMES OUT</text></g></g>
+    <g class="edges"><path id="edge-0" class="edge edge--import" d="M 132.6 83.3 L 146.2 90.1 L 214.2 124.1" data-edge="0" data-from="INS" data-to="SCH" data-reveal="0" marker-end="url(#arrow-plain)"/><path id="edge-1" class="edge edge--import" d="M 98.6 66.3 L 30.6 32.3 L 17 25.5" data-edge="1" data-from="INS" data-to="EXT" data-reveal="0" marker-end="url(#arrow-plain)"/><path id="edge-2" class="edge edge--import" d="M 132.6 83.3 L 173.4 103.7 L 142.8 119 L 258.4 176.8 L 289 161.5 L 329.8 181.9" data-edge="2" data-from="INS" data-to="VIS" data-reveal="0" marker-end="url(#arrow-plain)"/><path id="edge-3" class="edge edge--call" d="M 132.6 83.3 L 200.6 117.3 L 170 132.6 L 0 47.6 L -85 90.1 L -17 124.1" data-edge="3" data-from="INS" data-to="VAL" data-reveal="1" marker-end="url(#arrow-plain)"/><path id="edge-4" class="edge edge--call" d="M 98.6 66.3 L 85 59.5 L 54.4 74.8 L 27.2 61.2 L -404.6 277.1 L -445.4 256.7" data-edge="4" data-from="INS" data-to="RND" data-reveal="4" marker-end="url(#arrow-plain)"/><path id="edge-5" class="edge edge--call" d="M 17 141.1 L 30.6 147.9 L -27.2 176.8 L -142.8 119 L -200.6 147.9 L -132.6 181.9" data-edge="5" data-from="VAL" data-to="MET" data-reveal="2" marker-end="url(#arrow-plain)"/><path id="edge-6" class="edge edge--call" d="M -445.4 256.7 L -431.8 263.5 L -462.4 278.8 L -440.64 289.68 L -63.24 100.98 L -17 124.1" data-edge="6" data-from="RND" data-to="VAL" data-reveal="4" marker-end="url(#arrow-plain)"/><path id="edge-7" class="edge edge--call" d="M -445.4 256.7 L -420.92 268.94 L -305.32 211.14 L -248.2 239.7" data-edge="7" data-from="RND" data-to="LAY" data-reveal="4" marker-end="url(#arrow-plain)"/><path id="edge-8" class="edge edge--call" d="M -445.4 256.7 L -410.04 274.38 L -440.64 289.68 L -346.8 336.6 L -200.6 263.5 L -132.6 297.5" data-edge="8" data-from="RND" data-to="SVG" data-reveal="4" marker-end="url(#arrow-plain)"/><path id="edge-9" class="edge edge--call" d="M -445.4 256.7 L -399.16 279.82 L -429.76 295.12 L -578 221 L -316.2 90.1 L -248.2 124.1" data-edge="9" data-from="RND" data-to="GEO" data-reveal="4" marker-end="url(#arrow-plain)"/><path id="edge-10" class="edge edge--read" d="M -445.4 256.7 L -388.28 285.26 L -473.28 327.76 L -346.8 391 L -261.8 348.5 L -248.2 355.3" data-edge="10" data-from="RND" data-to="CSS" data-reveal="4" marker-end="url(#arrow-plain)"/><path id="edge-11" class="edge edge--read" d="M -445.4 256.7 L -377.4 290.7 L -363.8 297.5" data-edge="11" data-from="RND" data-to="APP" data-reveal="4" marker-end="url(#arrow-plain)"/><path id="edge-12" class="edge edge--call" d="M -248.2 239.7 L -316.2 205.7 L -200.6 147.9 L -214.2 141.1" data-edge="12" data-from="LAY" data-to="GEO" data-reveal="3" marker-end="url(#arrow-plain)"/><path id="edge-13" class="edge edge--call" d="M -132.6 297.5 L -173.4 277.1 L -231.2 306 L -319.6 261.8 L -146.2 175.1 L -214.2 141.1" data-edge="13" data-from="SVG" data-to="GEO" data-reveal="3" marker-end="url(#arrow-plain)"/><path id="edge-14" class="edge edge--call" d="M -98.6 83.3 L -85 90.1 L -17 124.1" data-edge="14" data-from="GT" data-to="VAL" data-reveal="1" marker-end="url(#arrow-plain)"/><path id="edge-15" class="edge edge--read" d="M -98.6 83.3 L -74.12 95.54 L -131.92 124.44 L -99.28 140.76 L -503.88 343.06 L -479.4 355.3" data-edge="15" data-from="GT" data-to="EXM" data-reveal="5" marker-end="url(#arrow-plain)"/><path id="edge-16" class="edge edge--call" d="M -329.8 198.9 L -316.2 205.7 L -248.2 239.7" data-edge="16" data-from="LT" data-to="LAY" data-reveal="3" marker-end="url(#arrow-plain)"/><path id="edge-17" class="edge edge--read" d="M -329.8 198.9 L -305.32 211.14 L -363.12 240.04 L -374 234.6 L -547.4 321.3 L -479.4 355.3" data-edge="17" data-from="LT" data-to="EXM" data-reveal="5" marker-end="url(#arrow-plain)"/><path id="edge-18" class="edge edge--import" d="M 329.8 181.9 L 289 161.5 L 204 204 L -54.4 74.8 L -200.6 147.9 L -214.2 141.1" data-edge="18" data-from="VIS" data-to="GEO" data-reveal="2" marker-end="url(#arrow-plain)"/><path id="edge-19" class="edge edge--import" d="M 17 25.5 L 30.6 32.3 L 0 47.6 L 10.88 53.04 L -189.72 153.34 L -132.6 181.9" data-edge="19" data-from="EXT" data-to="MET" data-reveal="2" marker-end="url(#arrow-plain)"/><path id="edge-20" class="edge edge--call" d="M -561 314.5 L -547.4 321.3 L -605.2 350.2 L -572.56 366.52 L -52.36 106.42 L -17 124.1" data-edge="20" data-from="TWN" data-to="VAL" data-reveal="5" marker-end="url(#arrow-plain)"/><path id="edge-21" class="edge edge--import" d="M -561 314.5 L -536.52 326.74 L -594.32 355.64 L -666.4 319.6 L -261.8 117.3 L -248.2 124.1" data-edge="21" data-from="TWN" data-to="GEO" data-reveal="5" marker-end="url(#arrow-plain)"/></g>
+    <g class="buildings"><g class="bldg bldg--pad bldg--config" data-node="EXT" data-reveal="0" tabindex="0" role="button" aria-label="How to read"><g class="bldg__mesh"><polygon class="face face--left" points="-34,2 0,19 0,34 -34,17"/><polygon class="face face--right" points="34,2 0,19 0,34 34,17"/><polygon class="face face--top" points="0,-15 34,2 0,19 -34,2"/><polygon class="hatch" points="0,-15 34,2 0,19 -34,2" fill="url(#hatch-1)"/></g><g class="bldg__badge" transform="translate(0,2)"><rect x="-13" y="-9.5" width="26" height="15" rx="2"/><text x="0" y="1.5">EXT</text></g><g class="bldg__tag"><rect x="-34.7" y="40" width="69.4" height="13" rx="1.5"/><text x="0" y="49.3">HOW TO READ</text></g></g><g class="bldg bldg--pad bldg--config" data-node="INS" data-reveal="0" tabindex="0" role="button" aria-label="The instructions"><g class="bldg__mesh"><polygon class="face face--left" points="81.6,59.8 115.6,76.8 115.6,91.8 81.6,74.8"/><polygon class="face face--right" points="149.6,59.8 115.6,76.8 115.6,91.8 149.6,74.8"/><polygon class="face face--top" points="115.6,42.8 149.6,59.8 115.6,76.8 81.6,59.8"/></g><circle class="untested" cx="115.6" cy="43.8" r="3.2"/><g class="bldg__badge" transform="translate(115.6,59.8)"><rect x="-13" y="-9.5" width="26" height="15" rx="2"/><text x="0" y="1.5">INS</text></g><g class="bldg__tag"><rect x="78.2" y="97.8" width="74.8" height="13" rx="1.5"/><text x="115.6" y="107.1">INSTRUCTIONS</text></g></g><g class="bldg bldg--tower bldg--entry" data-node="GT" data-reveal="1" tabindex="0" role="button" aria-label="The gate self-test"><g class="bldg__mesh"><polygon class="face face--left" points="-149.6,39.8 -115.6,56.8 -115.6,91.8 -149.6,74.8"/><polygon class="face face--right" points="-81.6,39.8 -115.6,56.8 -115.6,91.8 -81.6,74.8"/><polygon class="face face--top" points="-115.6,22.8 -81.6,39.8 -115.6,56.8 -149.6,39.8"/><path class="striation" d="M -149.6,69.8 L -115.6,86.8 L -81.6,69.8"/><path class="striation" d="M -149.6,64.8 L -115.6,81.8 L -81.6,64.8"/><path class="striation" d="M -149.6,59.8 L -115.6,76.8 L -81.6,59.8"/><path class="striation" d="M -149.6,54.8 L -115.6,71.8 L -81.6,54.8"/><path class="striation" d="M -149.6,49.8 L -115.6,66.8 L -81.6,49.8"/><path class="striation" d="M -149.6,44.8 L -115.6,61.8 L -81.6,44.8"/></g><g class="bldg__badge" transform="translate(-115.6,39.8)"><rect x="-13" y="-9.5" width="26" height="15" rx="2"/><text x="0" y="1.5">GT</text></g><g class="bldg__tag"><rect x="-147.6" y="97.8" width="64" height="13" rx="1.5"/><text x="-115.6" y="107.1">GATE TESTS</text></g></g><g class="bldg bldg--pad bldg--config" data-node="SCH" data-reveal="0" tabindex="0" role="button" aria-label="The contract"><g class="bldg__mesh"><polygon class="face face--left" points="197.2,117.6 231.2,134.6 231.2,149.6 197.2,132.6"/><polygon class="face face--right" points="265.2,117.6 231.2,134.6 231.2,149.6 265.2,132.6"/><polygon class="face face--top" points="231.2,100.6 265.2,117.6 231.2,134.6 197.2,117.6"/><polygon class="hatch" points="231.2,100.6 265.2,117.6 231.2,134.6 197.2,117.6" fill="url(#hatch-1)"/></g><circle class="untested" cx="231.2" cy="101.6" r="3.2"/><g class="bldg__badge" transform="translate(231.2,117.6)"><rect x="-13" y="-9.5" width="26" height="15" rx="2"/><text x="0" y="1.5">SCH</text></g><g class="bldg__tag"><rect x="204.6" y="155.6" width="53.2" height="13" rx="1.5"/><text x="231.2" y="164.9">CONTRACT</text></g></g><g class="bldg bldg--tower bldg--entry" data-node="VAL" data-reveal="1" tabindex="0" role="button" aria-label="The citation gate"><g class="bldg__mesh"><polygon class="face face--left" points="-34,77.6 0,94.6 0,149.6 -34,132.6"/><polygon class="face face--right" points="34,77.6 0,94.6 0,149.6 34,132.6"/><polygon class="face face--top" points="0,60.6 34,77.6 0,94.6 -34,77.6"/><polygon class="hatch" points="0,60.6 34,77.6 0,94.6 -34,77.6" fill="url(#hatch-2)"/><path class="striation" d="M -34,127.6 L 0,144.6 L 34,127.6"/><path class="striation" d="M -34,122.6 L 0,139.6 L 34,122.6"/><path class="striation" d="M -34,117.6 L 0,134.6 L 34,117.6"/><path class="striation" d="M -34,112.6 L 0,129.6 L 34,112.6"/><path class="striation" d="M -34,107.6 L 0,124.6 L 34,107.6"/><path class="striation" d="M -34,102.6 L 0,119.6 L 34,102.6"/><path class="striation" d="M -34,97.6 L 0,114.6 L 34,97.6"/><path class="striation" d="M -34,92.6 L 0,109.6 L 34,92.6"/><path class="striation" d="M -34,87.6 L 0,104.6 L 34,87.6"/><path class="striation" d="M -34,82.6 L 0,99.6 L 34,82.6"/></g><circle class="untested" cx="0" cy="61.6" r="3.2"/><g class="bldg__badge" transform="translate(0,77.6)"><rect x="-13" y="-9.5" width="26" height="15" rx="2"/><text x="0" y="1.5">VAL</text></g><g class="bldg__tag"><rect x="-40.1" y="155.6" width="80.2" height="13" rx="1.5"/><text x="0" y="164.9">CITATION GATE</text></g></g><g class="bldg bldg--tower bldg--service" data-node="GEO" data-reveal="2" tabindex="0" role="button" aria-label="Projection and mass"><g class="bldg__mesh"><polygon class="face face--left" points="-265.2,102.6 -231.2,119.6 -231.2,149.6 -265.2,132.6"/><polygon class="face face--right" points="-197.2,102.6 -231.2,119.6 -231.2,149.6 -197.2,132.6"/><polygon class="face face--top" points="-231.2,85.6 -197.2,102.6 -231.2,119.6 -265.2,102.6"/><polygon class="hatch" points="-231.2,85.6 -197.2,102.6 -231.2,119.6 -265.2,102.6" fill="url(#hatch-2)"/><path class="striation" d="M -265.2,127.6 L -231.2,144.6 L -197.2,127.6"/><path class="striation" d="M -265.2,122.6 L -231.2,139.6 L -197.2,122.6"/><path class="striation" d="M -265.2,117.6 L -231.2,134.6 L -197.2,117.6"/><path class="striation" d="M -265.2,112.6 L -231.2,129.6 L -197.2,112.6"/><path class="striation" d="M -265.2,107.6 L -231.2,124.6 L -197.2,107.6"/></g><g class="bldg__badge" transform="translate(-231.2,102.6)"><rect x="-13" y="-9.5" width="26" height="15" rx="2"/><text x="0" y="1.5">GEO</text></g><g class="bldg__tag"><rect x="-257.8" y="155.6" width="53.2" height="13" rx="1.5"/><text x="-231.2" y="164.9">GEOMETRY</text></g></g><g class="bldg bldg--pad bldg--config" data-node="VIS" data-reveal="0" tabindex="0" role="button" aria-label="The visual language"><g class="bldg__mesh"><polygon class="face face--left" points="312.8,175.4 346.8,192.4 346.8,207.4 312.8,190.4"/><polygon class="face face--right" points="380.8,175.4 346.8,192.4 346.8,207.4 380.8,190.4"/><polygon class="face face--top" points="346.8,158.4 380.8,175.4 346.8,192.4 312.8,175.4"/><polygon class="hatch" points="346.8,158.4 380.8,175.4 346.8,192.4 312.8,175.4" fill="url(#hatch-1)"/></g><g class="bldg__badge" transform="translate(346.8,175.4)"><rect x="-13" y="-9.5" width="26" height="15" rx="2"/><text x="0" y="1.5">VIS</text></g><g class="bldg__tag"><rect x="301.3" y="213.4" width="91" height="13" rx="1.5"/><text x="346.8" y="222.7">VISUAL LANGUAGE</text></g></g><g class="bldg bldg--tower bldg--service" data-node="MET" data-reveal="2" tabindex="0" role="button" aria-label="Measuring"><g class="bldg__mesh"><polygon class="face face--left" points="-149.6,155.4 -115.6,172.4 -115.6,207.4 -149.6,190.4"/><polygon class="face face--right" points="-81.6,155.4 -115.6,172.4 -115.6,207.4 -81.6,190.4"/><polygon class="face face--top" points="-115.6,138.4 -81.6,155.4 -115.6,172.4 -149.6,155.4"/><polygon class="hatch" points="-115.6,138.4 -81.6,155.4 -115.6,172.4 -149.6,155.4" fill="url(#hatch-1)"/><path class="striation" d="M -149.6,185.4 L -115.6,202.4 L -81.6,185.4"/><path class="striation" d="M -149.6,180.4 L -115.6,197.4 L -81.6,180.4"/><path class="striation" d="M -149.6,175.4 L -115.6,192.4 L -81.6,175.4"/><path class="striation" d="M -149.6,170.4 L -115.6,187.4 L -81.6,170.4"/><path class="striation" d="M -149.6,165.4 L -115.6,182.4 L -81.6,165.4"/><path class="striation" d="M -149.6,160.4 L -115.6,177.4 L -81.6,160.4"/></g><circle class="untested" cx="-115.6" cy="139.4" r="3.2"/><g class="bldg__badge" transform="translate(-115.6,155.4)"><rect x="-13" y="-9.5" width="26" height="15" rx="2"/><text x="0" y="1.5">MET</text></g><g class="bldg__tag"><rect x="-139.5" y="213.4" width="47.8" height="13" rx="1.5"/><text x="-115.6" y="222.7">METRICS</text></g></g><g class="bldg bldg--tower bldg--entry" data-node="LT" data-reveal="3" tabindex="0" role="button" aria-label="The layout invariants"><g class="bldg__mesh"><polygon class="face face--left" points="-380.8,160.4 -346.8,177.4 -346.8,207.4 -380.8,190.4"/><polygon class="face face--right" points="-312.8,160.4 -346.8,177.4 -346.8,207.4 -312.8,190.4"/><polygon class="face face--top" points="-346.8,143.4 -312.8,160.4 -346.8,177.4 -380.8,160.4"/><path class="striation" d="M -380.8,185.4 L -346.8,202.4 L -312.8,185.4"/><path class="striation" d="M -380.8,180.4 L -346.8,197.4 L -312.8,180.4"/><path class="striation" d="M -380.8,175.4 L -346.8,192.4 L -312.8,175.4"/><path class="striation" d="M -380.8,170.4 L -346.8,187.4 L -312.8,170.4"/><path class="striation" d="M -380.8,165.4 L -346.8,182.4 L -312.8,165.4"/></g><g class="bldg__badge" transform="translate(-346.8,160.4)"><rect x="-13" y="-9.5" width="26" height="15" rx="2"/><text x="0" y="1.5">LT</text></g><g class="bldg__tag"><rect x="-384.2" y="213.4" width="74.8" height="13" rx="1.5"/><text x="-346.8" y="222.7">LAYOUT TESTS</text></g></g><g class="bldg bldg--tower bldg--service" data-node="LAY" data-reveal="3" tabindex="0" role="button" aria-label="Placement and routing"><g class="bldg__mesh"><polygon class="face face--left" points="-265.2,203.2 -231.2,220.2 -231.2,265.2 -265.2,248.2"/><polygon class="face face--right" points="-197.2,203.2 -231.2,220.2 -231.2,265.2 -197.2,248.2"/><polygon class="face face--top" points="-231.2,186.2 -197.2,203.2 -231.2,220.2 -265.2,203.2"/><polygon class="hatch" points="-231.2,186.2 -197.2,203.2 -231.2,220.2 -265.2,203.2" fill="url(#hatch-1)"/><path class="striation" d="M -265.2,243.2 L -231.2,260.2 L -197.2,243.2"/><path class="striation" d="M -265.2,238.2 L -231.2,255.2 L -197.2,238.2"/><path class="striation" d="M -265.2,233.2 L -231.2,250.2 L -197.2,233.2"/><path class="striation" d="M -265.2,228.2 L -231.2,245.2 L -197.2,228.2"/><path class="striation" d="M -265.2,223.2 L -231.2,240.2 L -197.2,223.2"/><path class="striation" d="M -265.2,218.2 L -231.2,235.2 L -197.2,218.2"/><path class="striation" d="M -265.2,213.2 L -231.2,230.2 L -197.2,213.2"/><path class="striation" d="M -265.2,208.2 L -231.2,225.2 L -197.2,208.2"/></g><g class="bldg__badge" transform="translate(-231.2,203.2)"><rect x="-13" y="-9.5" width="26" height="15" rx="2"/><text x="0" y="1.5">LAY</text></g><g class="bldg__tag"><rect x="-252.4" y="271.2" width="42.4" height="13" rx="1.5"/><text x="-231.2" y="280.5">LAYOUT</text></g></g><g class="bldg bldg--tower bldg--entry" data-node="RND" data-reveal="4" tabindex="0" role="button" aria-label="The assembler"><g class="bldg__mesh"><polygon class="face face--left" points="-496.4,208.2 -462.4,225.2 -462.4,265.2 -496.4,248.2"/><polygon class="face face--right" points="-428.4,208.2 -462.4,225.2 -462.4,265.2 -428.4,248.2"/><polygon class="face face--top" points="-462.4,191.2 -428.4,208.2 -462.4,225.2 -496.4,208.2"/><polygon class="hatch" points="-462.4,191.2 -428.4,208.2 -462.4,225.2 -496.4,208.2" fill="url(#hatch-1)"/><path class="striation" d="M -496.4,243.2 L -462.4,260.2 L -428.4,243.2"/><path class="striation" d="M -496.4,238.2 L -462.4,255.2 L -428.4,238.2"/><path class="striation" d="M -496.4,233.2 L -462.4,250.2 L -428.4,233.2"/><path class="striation" d="M -496.4,228.2 L -462.4,245.2 L -428.4,228.2"/><path class="striation" d="M -496.4,223.2 L -462.4,240.2 L -428.4,223.2"/><path class="striation" d="M -496.4,218.2 L -462.4,235.2 L -428.4,218.2"/><path class="striation" d="M -496.4,213.2 L -462.4,230.2 L -428.4,213.2"/></g><circle class="untested" cx="-462.4" cy="192.2" r="3.2"/><g class="bldg__badge" transform="translate(-462.4,208.2)"><rect x="-13" y="-9.5" width="26" height="15" rx="2"/><text x="0" y="1.5">RND</text></g><g class="bldg__tag"><rect x="-489" y="271.2" width="53.2" height="13" rx="1.5"/><text x="-462.4" y="280.5">RENDERER</text></g></g><g class="bldg bldg--tower bldg--service" data-node="SVG" data-reveal="3" tabindex="0" role="button" aria-label="The scene"><g class="bldg__mesh"><polygon class="face face--left" points="-149.6,271 -115.6,288 -115.6,323 -149.6,306"/><polygon class="face face--right" points="-81.6,271 -115.6,288 -115.6,323 -81.6,306"/><polygon class="face face--top" points="-115.6,254 -81.6,271 -115.6,288 -149.6,271"/><polygon class="hatch" points="-115.6,254 -81.6,271 -115.6,288 -149.6,271" fill="url(#hatch-1)"/><path class="striation" d="M -149.6,301 L -115.6,318 L -81.6,301"/><path class="striation" d="M -149.6,296 L -115.6,313 L -81.6,296"/><path class="striation" d="M -149.6,291 L -115.6,308 L -81.6,291"/><path class="striation" d="M -149.6,286 L -115.6,303 L -81.6,286"/><path class="striation" d="M -149.6,281 L -115.6,298 L -81.6,281"/><path class="striation" d="M -149.6,276 L -115.6,293 L -81.6,276"/></g><circle class="untested" cx="-115.6" cy="255" r="3.2"/><g class="bldg__badge" transform="translate(-115.6,271)"><rect x="-13" y="-9.5" width="26" height="15" rx="2"/><text x="0" y="1.5">SVG</text></g><g class="bldg__tag"><rect x="-134.1" y="329" width="37" height="13" rx="1.5"/><text x="-115.6" y="338.3">SCENE</text></g></g><g class="bldg bldg--tower bldg--ui" data-node="APP" data-reveal="4" tabindex="0" role="button" aria-label="The interaction layer"><g class="bldg__mesh"><polygon class="face face--left" points="-380.8,241 -346.8,258 -346.8,323 -380.8,306"/><polygon class="face face--right" points="-312.8,241 -346.8,258 -346.8,323 -312.8,306"/><polygon class="face face--top" points="-346.8,224 -312.8,241 -346.8,258 -380.8,241"/><polygon class="hatch" points="-346.8,224 -312.8,241 -346.8,258 -380.8,241" fill="url(#hatch-1)"/><path class="striation" d="M -380.8,301 L -346.8,318 L -312.8,301"/><path class="striation" d="M -380.8,296 L -346.8,313 L -312.8,296"/><path class="striation" d="M -380.8,291 L -346.8,308 L -312.8,291"/><path class="striation" d="M -380.8,286 L -346.8,303 L -312.8,286"/><path class="striation" d="M -380.8,281 L -346.8,298 L -312.8,281"/><path class="striation" d="M -380.8,276 L -346.8,293 L -312.8,276"/><path class="striation" d="M -380.8,271 L -346.8,288 L -312.8,271"/><path class="striation" d="M -380.8,266 L -346.8,283 L -312.8,266"/><path class="striation" d="M -380.8,261 L -346.8,278 L -312.8,261"/><path class="striation" d="M -380.8,256 L -346.8,273 L -312.8,256"/><path class="striation" d="M -380.8,251 L -346.8,268 L -312.8,251"/><path class="striation" d="M -380.8,246 L -346.8,263 L -312.8,246"/></g><circle class="untested" cx="-346.8" cy="225" r="3.2"/><g class="bldg__badge" transform="translate(-346.8,241)"><rect x="-13" y="-9.5" width="26" height="15" rx="2"/><text x="0" y="1.5">APP</text></g><g class="bldg__tag"><rect x="-381.5" y="329" width="69.4" height="13" rx="1.5"/><text x="-346.8" y="338.3">INTERACTION</text></g></g><g class="bldg bldg--tower bldg--service" data-node="TWN" data-reveal="5" tabindex="0" role="button" aria-label="The text twin"><g class="bldg__mesh"><polygon class="face face--left" points="-612,271 -578,288 -578,323 -612,306"/><polygon class="face face--right" points="-544,271 -578,288 -578,323 -544,306"/><polygon class="face face--top" points="-578,254 -544,271 -578,288 -612,271"/><path class="striation" d="M -612,301 L -578,318 L -544,301"/><path class="striation" d="M -612,296 L -578,313 L -544,296"/><path class="striation" d="M -612,291 L -578,308 L -544,291"/><path class="striation" d="M -612,286 L -578,303 L -544,286"/><path class="striation" d="M -612,281 L -578,298 L -544,281"/><path class="striation" d="M -612,276 L -578,293 L -544,276"/></g><circle class="untested" cx="-578" cy="255" r="3.2"/><g class="bldg__badge" transform="translate(-578,271)"><rect x="-13" y="-9.5" width="26" height="15" rx="2"/><text x="0" y="1.5">TWN</text></g><g class="bldg__tag"><rect x="-607.3" y="329" width="58.6" height="13" rx="1.5"/><text x="-578" y="338.3">TEXT TWIN</text></g></g><g class="bldg bldg--pad bldg--config" data-node="CSS" data-reveal="4" tabindex="0" role="button" aria-label="The theme"><g class="bldg__mesh"><polygon class="face face--left" points="-265.2,348.8 -231.2,365.8 -231.2,380.8 -265.2,363.8"/><polygon class="face face--right" points="-197.2,348.8 -231.2,365.8 -231.2,380.8 -197.2,363.8"/><polygon class="face face--top" points="-231.2,331.8 -197.2,348.8 -231.2,365.8 -265.2,348.8"/><polygon class="hatch" points="-231.2,331.8 -197.2,348.8 -231.2,365.8 -265.2,348.8" fill="url(#hatch-1)"/></g><circle class="untested" cx="-231.2" cy="332.8" r="3.2"/><g class="bldg__badge" transform="translate(-231.2,348.8)"><rect x="-13" y="-9.5" width="26" height="15" rx="2"/><text x="0" y="1.5">CSS</text></g><g class="bldg__tag"><rect x="-249.7" y="386.8" width="37" height="13" rx="1.5"/><text x="-231.2" y="396.1">THEME</text></g></g><g class="bldg bldg--slabs bldg--store" data-node="EXM" data-reveal="5" tabindex="0" role="button" aria-label="The example maps"><g class="bldg__mesh"><polygon class="face face--left" points="-496.4,352.95 -462.4,369.95 -462.4,380.8 -496.4,363.8"/><polygon class="face face--right" points="-428.4,352.95 -462.4,369.95 -462.4,380.8 -428.4,363.8"/><polygon class="face face--top" points="-462.4,335.95 -428.4,352.95 -462.4,369.95 -496.4,352.95"/><polygon class="face face--left" points="-496.4,333.23 -462.4,350.23 -462.4,361.08 -496.4,344.08"/><polygon class="face face--right" points="-428.4,333.23 -462.4,350.23 -462.4,361.08 -428.4,344.08"/><polygon class="face face--top" points="-462.4,316.23 -428.4,333.23 -462.4,350.23 -496.4,333.23"/><polygon class="face face--left" points="-496.4,313.52 -462.4,330.52 -462.4,341.37 -496.4,324.37"/><polygon class="face face--right" points="-428.4,313.52 -462.4,330.52 -462.4,341.37 -428.4,324.37"/><polygon class="face face--top" points="-462.4,296.52 -428.4,313.52 -462.4,330.52 -496.4,313.52"/><polygon class="face face--left" points="-496.4,293.8 -462.4,310.8 -462.4,321.65 -496.4,304.65"/><polygon class="face face--right" points="-428.4,293.8 -462.4,310.8 -462.4,321.65 -428.4,304.65"/><polygon class="face face--top" points="-462.4,276.8 -428.4,293.8 -462.4,310.8 -496.4,293.8"/><polygon class="hatch" points="-462.4,335.95 -428.4,352.95 -462.4,369.95 -496.4,352.95" fill="url(#hatch-1)"/></g><circle class="untested" cx="-462.4" cy="277.8" r="3.2"/><g class="bldg__badge" transform="translate(-462.4,293.8)"><rect x="-13" y="-9.5" width="26" height="15" rx="2"/><text x="0" y="1.5">EXM</text></g><g class="bldg__tag"><rect x="-499.8" y="386.8" width="74.8" height="13" rx="1.5"/><text x="-462.4" y="396.1">EXAMPLE MAPS</text></g></g></g>
+    <g class="flow-layer" aria-hidden="true"></g>
+    <g class="edge-labels" aria-hidden="true"><g class="edge-label" data-edge="0" data-reveal="0"><rect x="145.1" y="101.1" width="70.2" height="12" rx="1.5"/><text x="180.2" y="110.1">the contract</text></g><g class="edge-label" data-edge="1" data-reveal="0"><rect x="32.05" y="43.3" width="65.1" height="12" rx="1.5"/><text x="64.6" y="52.3">how to read</text></g><g class="edge-label" data-edge="3" data-reveal="1"><rect x="65.2" y="84.1" width="39.6" height="12" rx="1.5"/><text x="85" y="93.1">step 5</text></g><g class="edge-label" data-edge="4" data-reveal="4"><rect x="-208.5" y="163.15" width="39.6" height="12" rx="1.5"/><text x="-188.7" y="172.15">step 6</text></g><g class="edge-label" data-edge="5" data-reveal="2"><rect x="-122.65" y="141.9" width="75.3" height="12" rx="1.5"/><text x="-85" y="150.9">measure globs</text></g><g class="edge-label" data-edge="6" data-reveal="4"><rect x="-281.94" y="189.33" width="60" height="12" rx="1.5"/><text x="-251.94" y="198.33">gate first</text></g><g class="edge-label" data-edge="10" data-reveal="4"><rect x="-432.39" y="353.38" width="44.7" height="12" rx="1.5"/><text x="-410.04" y="362.38">inlined</text></g><g class="edge-label" data-edge="11" data-reveal="4"><rect x="-433.75" y="267.7" width="44.7" height="12" rx="1.5"/><text x="-411.4" y="276.7">inlined</text></g><g class="edge-label" data-edge="14" data-reveal="1"><rect x="-83.55" y="101.1" width="65.1" height="12" rx="1.5"/><text x="-51" y="110.1">eleven lies</text></g><g class="edge-label" data-edge="15" data-reveal="5"><rect x="-323.93" y="235.91" width="44.7" height="12" rx="1.5"/><text x="-301.58" y="244.91">fixture</text></g><g class="edge-label" data-edge="20" data-reveal="5"><rect x="-342.46" y="230.47" width="60" height="12" rx="1.5"/><text x="-312.46" y="239.47">gate first</text></g></g>
+  </g>
+</svg>
+    <div class="stage__hint">drag to pan &middot; scroll to zoom &middot; click a structure to read it &middot; "." traces one step &middot; esc returns to the overview</div>
+  </main>
+
+  <aside class="explainer">
+    <div class="tabs" role="tablist">
+      <button class="tab" type="button" role="tab" aria-selected="true">What it does</button>
+      <button class="tab" type="button" role="tab" aria-selected="false">How it's built</button>
+    </div>
+    <div class="panel" id="panel" role="tabpanel"></div>
+  </aside>
+
+  <footer class="legend"><div class="legend__group"><span class="legend__item"><svg width="20" height="18" viewBox="-10 -13 20 18"><polygon class="face face--top" points="0,-11 8,-7 0,-3 -8,-7"/><polygon class="face face--left" points="-8,-7 0,-3 0,3 -8,-1"/><polygon class="face face--right" points="8,-7 0,-3 0,3 8,-1"/><path class="striation" d="M -8 -3 L 0 1 L 8 -3"/></svg>code that runs</span><span class="legend__item"><svg width="20" height="18" viewBox="-10 -13 20 18"><polygon class="face face--top" points="0,-1 7,2 0,5 -7,2"/><polygon class="face face--left" points="-7,2 0,5 0,6.6 -7,3.6"/><polygon class="face face--right" points="7,2 0,5 0,6.6 7,3.6"/><polygon class="face face--top" points="0,-6 7,-3 0,0 -7,-3"/><polygon class="face face--left" points="-7,-3 0,0 0,1.5999999999999996 -7,-1.4"/><polygon class="face face--right" points="7,-3 0,0 0,1.5999999999999996 7,-1.4"/><polygon class="face face--top" points="0,-11 7,-8 0,-5 -7,-8"/><polygon class="face face--left" points="-7,-8 0,-5 0,-3.4000000000000004 -7,-6.4"/><polygon class="face face--right" points="7,-8 0,-5 0,-3.4000000000000004 7,-6.4"/></svg>a stored collection</span><span class="legend__item"><svg width="20" height="18" viewBox="-10 -13 20 18"><polygon class="face face--top" points="0,-4 8,0 0,4 -8,0"/><polygon class="face face--left" points="-8,0 0,4 0,6 -8,2"/><polygon class="face face--right" points="8,0 0,4 0,6 8,2"/></svg>types and constants</span></div><span class="legend__sep">|</span><div class="legend__group"><span class="legend__item"><svg width="26" height="8" viewBox="0 0 26 8"><path class="edge edge--call" d="M 1 4 L 25 4"/></svg>call</span><span class="legend__item"><svg width="26" height="8" viewBox="0 0 26 8"><path class="edge edge--read" d="M 1 4 L 25 4"/></svg>reads state</span><span class="legend__item"><svg width="26" height="8" viewBox="0 0 26 8"><path class="edge edge--import" d="M 1 4 L 25 4"/></svg>types only</span></div><span class="legend__sep">|</span><span class="legend__item">taller = more code &middot; wider = more files &middot; denser = more dependents</span></footer>
+</div>
+<script>window.__SYSTEM_MAP__ = {"map":{"schema":"system-map/v1","meta":{"title":"Show me","subtitle":"the tool that drew this, drawn by itself","repository":"show-me","commit":"af7d5f27","branch":"main","scope":"The whole skill: the instructions an agent reads, the citation gate, the measuring and drawing pipeline, the published page runtime, and the example maps.","scopeGlobs":["skills/show-me/SKILL.md","skills/show-me/references/*.md","skills/show-me/scripts/**/*.mjs","skills/show-me/assets/*","skills/show-me/examples/*.json"],"overview":"This skill turns a codebase into a picture you can trust. The design is one idea: an agent reads the code and writes down what it found, and scripts do only the things a careful reader reliably gets wrong.\n\nNothing here parses source. That is deliberate, and it is what makes the skill work on any language without configuration. An earlier version shipped detectors that extracted relations with regular expressions; every false relation it produced came from a pattern misreading code, it needed new rules for every stack, and the one genuinely valuable thing it did turned out to need no language knowledge at all.\n\nWhat the scripts keep is the work reading cannot do. Opening ninety cited files to check every quotation is exactly the tedium a reader skims. Counting lines is arithmetic, and the moment a building size is estimated the picture becomes decoration. Placing buildings so that no connection ever crosses a footprint is a geometric invariant with a test behind it.\n\nThe sharpest of them is the coverage check, because it catches the failure a reader cannot catch in themselves: reading a directory, feeling finished, and moving on. That feels identical to having finished. Subtracting claimed files from files in scope has no such blind spot, and on this project it surfaced a whole subsystem in a directory the author had already read.","readingHint":"Districts run top to bottom in the order the work happens: what you read, the gate, the measuring and drawing, the page, and what comes out."},"groups":[{"id":"read","label":"WHAT THE AGENT READS","order":1},{"id":"gate","label":"THE CITATION GATE","order":2},{"id":"measure","label":"MEASURING","order":3},{"id":"place","label":"PLACING AND DRAWING","order":4},{"id":"page","label":"THE PAGE","order":5},{"id":"out","label":"WHAT COMES OUT","order":6}],"nodes":[{"id":"INS","label":"The instructions","group":"read","kind":"config","files":["skills/show-me/SKILL.md"],"whatItDoes":"The whole method, written for an agent about to map something. It sets out the seven steps, the two rules that cannot be bent, and the division of labour that everything else follows.","howItsBuilt":"A single Markdown file with YAML frontmatter naming the skill and describing when to reach for it. It states the pipeline as shell commands and delegates the detail to three reference documents rather than restating it.","citations":[{"file":"skills/show-me/SKILL.md","line":235,"evidence":"node scripts/validate.mjs \u003cmap>.json --repo \u003cworktree>"}],"confidence":"verified","short":"INSTRUCTIONS"},{"id":"SCH","label":"The contract","group":"read","kind":"config","files":["skills/show-me/references/schema.md"],"whatItDoes":"The exact shape of the file an agent writes. Everything the picture shows must be derivable from that document, so this is the one place where the format is defined.","howItsBuilt":"Annotated JSON with the required fields, the kinds a structure may take, the line styles each connection kind renders as, and the rules that keep a traced flow honest.","citations":[{"file":"skills/show-me/references/schema.md","line":1,"evidence":"# `system-map.json` contract (v1)"}],"confidence":"verified","short":"CONTRACT"},{"id":"EXT","label":"How to read","group":"read","kind":"config","files":["skills/show-me/references/extraction.md"],"whatItDoes":"The reading recipes. How to find what depends on what without guessing, how to cross an async boundary, and how to get a citation without ever typing a line number.","howItsBuilt":"Ranks evidence from strongest to weakest, gives the ripgrep invocations that produce file, line and literal text in one step, and explains why queue names in particular must be read rather than matched.","citations":[{"file":"skills/show-me/references/extraction.md","line":1,"evidence":"# Finding structure by reading"}],"confidence":"verified","short":"HOW TO READ"},{"id":"VIS","label":"The visual language","group":"read","kind":"config","files":["skills/show-me/references/visual-language.md"],"whatItDoes":"What the picture means. Which shape says a thing runs versus stores versus buffers, what makes one building taller than another, and why a hollow outline means the code is not ours.","howItsBuilt":"Binds every visual property to a measured number and records the formulas alongside a note to keep them in step with the geometry module, because a document that misstates the measurement undoes the promise it describes.","citations":[{"file":"skills/show-me/references/visual-language.md","line":37,"evidence":"These formulas live in `scripts/lib/geometry.mjs`. If you change them there,"}],"confidence":"verified","short":"VISUAL LANGUAGE"},{"id":"VAL","label":"The citation gate","group":"gate","kind":"entry","files":["skills/show-me/scripts/validate.mjs"],"whatItDoes":"The reason a map can be trusted. It opens every cited file and proves the quoted text is really there, and it reports which files in the declared region no structure claims. Nothing renders until it passes.","howItsBuilt":"Structural checks, then for each citation it reads the file and searches a few lines either side for the literal evidence string. Also holds the coverage report and a relocate mode that repairs citations whose lines drifted while the code moved.","citations":[{"file":"skills/show-me/scripts/validate.mjs","line":55,"evidence":"if (!window.includes(evidence)) {"},{"file":"skills/show-me/scripts/validate.mjs","line":371,"evidence":"export async function scopeCoverage(map, repoRoot) {"}],"confidence":"verified","concerns":["Proves a cited line exists and says what was quoted, never that it was read correctly, so a misreading passes the gate."],"short":"CITATION GATE"},{"id":"GT","label":"The gate self-test","group":"gate","kind":"entry","files":["skills/show-me/scripts/self-test.mjs"],"whatItDoes":"Proof that the gate actually rejects lies. It takes a real map, corrupts it eleven different ways, and checks that each corruption is caught.","howItsBuilt":"Picks whichever shipped example resolves against the repo, clones it per case, and mutates one thing: a fabricated quotation, a real string cited at the wrong line, a flow that teleports, a branch step misdeclared as a hop.","citations":[{"file":"skills/show-me/scripts/self-test.mjs","line":14,"evidence":"import { validateMap, resolveNodeFiles } from './validate.mjs'"}],"confidence":"verified","short":"GATE TESTS"},{"id":"MET","label":"Measuring","group":"measure","kind":"service","files":["skills/show-me/scripts/lib/metrics.mjs"],"whatItDoes":"Counts. How many files a structure holds and how many lines they run to, plus which of them are tests. Building size comes from here and nowhere else.","howItsBuilt":"A dependency-free glob matcher over a directory walk, line counting that ignores blanks, and sibling discovery that finds a test file next to its subject whatever the language calls it.","citations":[{"file":"skills/show-me/scripts/lib/metrics.mjs","line":96,"evidence":"export function expandGlobs(repoRoot, patterns) {"},{"file":"skills/show-me/scripts/lib/metrics.mjs","line":28,"evidence":"const TEST_PATTERN = new RegExp(["}],"confidence":"verified","short":"METRICS"},{"id":"GEO","label":"Projection and mass","group":"measure","kind":"service","files":["skills/show-me/scripts/lib/geometry.mjs"],"whatItDoes":"Turns measurements into shapes. It decides how wide and how tall a structure is from its file count and line count, and produces the three visible faces of every building.","howItsBuilt":"A two-to-one isometric projection, a square-root height scale so a range spanning three orders of magnitude stays legible, and one branch per shape returning its own mesh.","citations":[{"file":"skills/show-me/scripts/lib/geometry.mjs","line":32,"evidence":"export function massOf({ fileCount, loc }) {"},{"file":"skills/show-me/scripts/lib/geometry.mjs","line":12,"evidence":"export function project(gx, gy, z = 0) {"}],"confidence":"verified","short":"GEOMETRY"},{"id":"LAY","label":"Placement and routing","group":"place","kind":"service","files":["skills/show-me/scripts/lib/layout.mjs"],"whatItDoes":"Decides where everything sits. Each group becomes a raised band of its own. Every connection travels only through the gaps between buildings, which is why no line is ever ambiguously in front of or behind one.","howItsBuilt":"Groups become contiguous row bands, columns and rows size to their own contents, and connections route through reserved corridors with lanes assigned by interval colouring so two routes contend only where they actually overlap.","citations":[{"file":"skills/show-me/scripts/lib/layout.mjs","line":16,"evidence":"import { massOf, project } from './geometry.mjs'"}],"confidence":"verified","short":"LAYOUT"},{"id":"SVG","label":"The scene","group":"place","kind":"service","files":["skills/show-me/scripts/lib/svg.mjs"],"whatItDoes":"Draws the field: the ground, the raised district platforms, the connections, the buildings painted far to near, and the labels that appear only when a connection is highlighted.","howItsBuilt":"Emits inline SVG from coordinates already computed, so the browser does no layout work and the markup is diffable between runs. Hatch density on a roof encodes how many other structures depend on it.","citations":[{"file":"skills/show-me/scripts/lib/svg.mjs","line":4,"evidence":"import { buildMesh, groundGrid, project } from './geometry.mjs'"}],"confidence":"verified","short":"SCENE"},{"id":"RND","label":"The assembler","group":"page","kind":"entry","files":["skills/show-me/scripts/render.mjs"],"whatItDoes":"Puts the page together. It refuses to run on a map that has not passed the gate. Then it measures, places, draws, and folds everything into one file that needs no server and no build step.","howItsBuilt":"Runs the gate first, resolves globs to measurements, calls layout and the scene emitter, then inlines the stylesheet, the interaction layer and the map itself as pure ASCII so no host charset can corrupt it.","citations":[{"file":"skills/show-me/scripts/render.mjs","line":16,"evidence":"import { validateMap, resolveNodeFiles } from './validate.mjs'"},{"file":"skills/show-me/scripts/render.mjs","line":218,"evidence":"const css = readFileSync(join(assets, 'app.css'), 'utf8')"}],"confidence":"verified","short":"RENDERER"},{"id":"LT","label":"The layout invariants","group":"place","kind":"entry","files":["skills/show-me/scripts/layout-test.mjs"],"whatItDoes":"Proof that a connection never enters a building. That single property is the only reason the scene can draw every line before every building without sorting them by depth.","howItsBuilt":"Recomputes the layout for every shipped map and asserts no route enters a footprint, no footprints overlap, everything falls inside the frame, districts are contiguous, and two runs agree exactly.","citations":[{"file":"skills/show-me/scripts/layout-test.mjs","line":16,"evidence":"import { layout } from './lib/layout.mjs'"}],"confidence":"verified","short":"LAYOUT TESTS"},{"id":"APP","label":"The interaction layer","group":"page","kind":"ui","files":["skills/show-me/assets/app.js"],"whatItDoes":"Everything the page does once it is open. Panning and zooming, clicking a structure to read about it, and playing a traced path one step at a time. The pace is set by how long each step takes to read.","howItsBuilt":"Vanilla JavaScript over the pre-computed scene. Flow playback gives each step a travel time from its path length and a dwell from its own note, and scrolls the panel so the sentence explaining a hop is on screen while that hop is lit.","citations":[{"file":"skills/show-me/assets/app.js","line":192,"evidence":"const READING_WORDS_PER_SECOND = 3.2;   // unhurried prose, not skimming"},{"file":"skills/show-me/assets/app.js","line":292,"evidence":"function scrollStepIntoView(el) {"}],"confidence":"verified","short":"INTERACTION"},{"id":"CSS","label":"The theme","group":"page","kind":"config","files":["skills/show-me/assets/app.css"],"whatItDoes":"How the page looks in either colour scheme, and the panel layout around the map. Colour never encodes a category, so the picture survives being printed or read by someone colour-blind.","howItsBuilt":"One complete palette as custom properties, redefined for dark under both a media query and an explicit attribute so every combination of viewer preference resolves. Components only ever read tokens.","citations":[{"file":"skills/show-me/assets/app.css","line":1,"evidence":"@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono"}],"confidence":"verified","concerns":["Pulls a webfont from Google Fonts, the one external host an artifact may reach; every face declares a fallback stack behind it."],"short":"THEME"},{"id":"EXM","label":"The example maps","group":"out","kind":"store","files":["skills/show-me/examples/*.system-map.json"],"whatItDoes":"Three finished maps, which double as the fixtures both guard scripts run against. One of them is this map: the skill described by itself.","howItsBuilt":"Plain JSON conforming to the contract. Each cites paths in the repository it was built from, so a guard pointed at a different checkout skips it with a note rather than failing.","citations":[{"file":"skills/show-me/examples/show-me.system-map.json","line":2,"evidence":"\"schema\": \"system-map/v1\""}],"confidence":"verified","concerns":["Citations are repo-relative, so extracting the skill on its own leaves the example maps unresolvable."],"short":"EXAMPLE MAPS"},{"id":"TWN","label":"The text twin","short":"TEXT TWIN","group":"out","kind":"service","files":["skills/show-me/scripts/twin.mjs"],"whatItDoes":"Writes the same map out as a document instead of a picture. The picture is better for grasping shape; the words are better for everything afterwards. They can be searched, compared between two versions, reviewed alongside a code change, and read where there is no browser.","howItsBuilt":"Takes the same data file the page is drawn from, re-runs the gate, resolves the file globs for their counts, and emits Markdown: a header table, the reading order, one section per structure with its connections and the citation behind each, then the traced flows and a provenance note.","citations":[{"file":"skills/show-me/scripts/twin.mjs","line":33,"evidence":"export async function twin(map, repoRoot) {"},{"file":"skills/show-me/scripts/twin.mjs","line":243,"evidence":"writeFileSync(resolve(flags.get('out')), text, 'utf8')"}],"confidence":"verified"}],"edges":[{"from":"INS","to":"SCH","kind":"import","citation":{"file":"skills/show-me/SKILL.md","line":57,"evidence":"Read `references/schema.md` before writing any JSON"},"confidence":"verified","label":"the contract"},{"from":"INS","to":"EXT","kind":"import","citation":{"file":"skills/show-me/SKILL.md","line":58,"evidence":"Read `references/extraction.md` for how to find structure by reading"},"confidence":"verified","label":"how to read"},{"from":"INS","to":"VIS","kind":"import","citation":{"file":"skills/show-me/SKILL.md","line":60,"evidence":"Read `references/visual-language.md` for what each shape and channel means"},"confidence":"verified"},{"from":"INS","to":"VAL","kind":"call","citation":{"file":"skills/show-me/SKILL.md","line":235,"evidence":"node scripts/validate.mjs \u003cmap>.json --repo \u003cworktree>"},"confidence":"verified","label":"step 5"},{"from":"INS","to":"RND","kind":"call","citation":{"file":"skills/show-me/SKILL.md","line":238,"evidence":"node scripts/render.mjs   \u003cmap>.json --repo \u003cworktree> --out \u003cout>.html"},"confidence":"verified","label":"step 6"},{"from":"VAL","to":"MET","kind":"call","citation":{"file":"skills/show-me/scripts/validate.mjs","line":398,"evidence":"const { expandGlobs, fileMetrics, discoverTestSiblings } = await import('./lib/metrics.mjs')"},"confidence":"verified","label":"measure globs"},{"from":"RND","to":"VAL","kind":"call","citation":{"file":"skills/show-me/scripts/render.mjs","line":16,"evidence":"import { validateMap, resolveNodeFiles } from './validate.mjs'"},"confidence":"verified","label":"gate first"},{"from":"RND","to":"LAY","kind":"call","citation":{"file":"skills/show-me/scripts/render.mjs","line":17,"evidence":"import { layout } from './lib/layout.mjs'"},"confidence":"verified"},{"from":"RND","to":"SVG","kind":"call","citation":{"file":"skills/show-me/scripts/render.mjs","line":18,"evidence":"import { renderScene, escapeHtml as esc, DEFAULT_SHAPE }"},"confidence":"verified"},{"from":"RND","to":"GEO","kind":"call","citation":{"file":"skills/show-me/scripts/render.mjs","line":19,"evidence":"import { massOf } from './lib/geometry.mjs'"},"confidence":"verified"},{"from":"RND","to":"CSS","kind":"read","citation":{"file":"skills/show-me/scripts/render.mjs","line":218,"evidence":"const css = readFileSync(join(assets, 'app.css'), 'utf8')"},"confidence":"verified","label":"inlined"},{"from":"RND","to":"APP","kind":"read","citation":{"file":"skills/show-me/scripts/render.mjs","line":219,"evidence":"const js = readFileSync(join(assets, 'app.js'), 'utf8')"},"confidence":"verified","label":"inlined"},{"from":"LAY","to":"GEO","kind":"call","citation":{"file":"skills/show-me/scripts/lib/layout.mjs","line":16,"evidence":"import { massOf, project } from './geometry.mjs'"},"confidence":"verified"},{"from":"SVG","to":"GEO","kind":"call","citation":{"file":"skills/show-me/scripts/lib/svg.mjs","line":4,"evidence":"import { buildMesh, groundGrid, project } from './geometry.mjs'"},"confidence":"verified"},{"from":"GT","to":"VAL","kind":"call","citation":{"file":"skills/show-me/scripts/self-test.mjs","line":14,"evidence":"import { validateMap, resolveNodeFiles } from './validate.mjs'"},"confidence":"verified","label":"eleven lies"},{"from":"GT","to":"EXM","kind":"read","citation":{"file":"skills/show-me/scripts/self-test.mjs","line":26,"evidence":"for (const name of readdirSync(examples).filter((f) => f.endsWith('.system-map.json')).sort())"},"confidence":"verified","label":"fixture"},{"from":"LT","to":"LAY","kind":"call","citation":{"file":"skills/show-me/scripts/layout-test.mjs","line":16,"evidence":"import { layout } from './lib/layout.mjs'"},"confidence":"verified"},{"from":"LT","to":"EXM","kind":"read","citation":{"file":"skills/show-me/scripts/layout-test.mjs","line":19,"evidence":"const examples = join(here, '..', 'examples')"},"confidence":"verified"},{"from":"VIS","to":"GEO","kind":"import","citation":{"file":"skills/show-me/references/visual-language.md","line":37,"evidence":"These formulas live in `scripts/lib/geometry.mjs`"},"confidence":"verified"},{"from":"EXT","to":"MET","kind":"import","citation":{"file":"skills/show-me/references/extraction.md","line":96,"evidence":"REPO=/path/to/worktree node -e \"import('./scripts/lib/metrics.mjs')"},"confidence":"verified"},{"from":"TWN","to":"VAL","kind":"call","label":"gate first","confidence":"verified","citation":{"file":"skills/show-me/scripts/twin.mjs","line":18,"evidence":"import { validateMap, resolveNodeFiles, scopeCoverage } from './validate.mjs'"}},{"from":"TWN","to":"GEO","kind":"import","confidence":"verified","citation":{"file":"skills/show-me/scripts/twin.mjs","line":19,"evidence":"import { massOf } from './lib/geometry.mjs'"}}],"flows":[{"id":"render","label":"From map to page","summary":"A validated map becomes one self-contained HTML file: gated, measured, placed, drawn, then inlined.","trigger":"The author runs render.mjs on a map that has passed the gate","payload":"system-map.json","steps":[{"from":"INS","to":"RND","note":"The pipeline hands the map to the assembler, which is the only step that produces a file anyone looks at.","citation":{"file":"skills/show-me/SKILL.md","line":238,"evidence":"node scripts/render.mjs   \u003cmap>.json --repo \u003cworktree> --out \u003cout>.html"}},{"from":"RND","to":"VAL","branch":true,"note":"The gate runs again first, so a map that fails verification cannot be rendered even by accident.","citation":{"file":"skills/show-me/scripts/render.mjs","line":16,"evidence":"import { validateMap, resolveNodeFiles } from './validate.mjs'"}},{"from":"RND","to":"GEO","branch":true,"note":"Measured file counts and line counts become a footprint and a height, which is why no field can inflate a building.","citation":{"file":"skills/show-me/scripts/render.mjs","line":19,"evidence":"import { massOf } from './lib/geometry.mjs'"}},{"from":"RND","to":"LAY","branch":true,"note":"Groups become raised bands and every connection is routed through the corridors between buildings.","citation":{"file":"skills/show-me/scripts/render.mjs","line":17,"evidence":"import { layout } from './lib/layout.mjs'"}},{"from":"RND","to":"SVG","branch":true,"note":"Final coordinates are emitted as inline SVG, so the browser does no layout work and two runs are diffable.","citation":{"file":"skills/show-me/scripts/render.mjs","line":18,"evidence":"import { renderScene, escapeHtml as esc, DEFAULT_SHAPE }"}},{"from":"RND","to":"APP","branch":true,"note":"The stylesheet, the interaction layer and the map itself are inlined as pure ASCII, leaving one portable file.","citation":{"file":"skills/show-me/scripts/render.mjs","line":219,"evidence":"const js = readFileSync(join(assets, 'app.js'), 'utf8')"}}]},{"id":"gate","label":"Rejecting a fabricated map","summary":"A real map is corrupted eleven ways and the gate must catch every one of them.","trigger":"Anyone changes the validator or the schema","payload":"a mutated clone of a real map","steps":[{"from":"GT","to":"EXM","branch":true,"note":"It picks whichever shipped example resolves here, so the gate can still be tested from a checkout missing the others.","citation":{"file":"skills/show-me/scripts/self-test.mjs","line":26,"evidence":"for (const name of readdirSync(examples).filter((f) => f.endsWith('.system-map.json')).sort())"}},{"from":"GT","to":"VAL","note":"Each case clones that map, breaks exactly one thing, and asserts the gate rejects it for the expected reason.","citation":{"file":"skills/show-me/scripts/self-test.mjs","line":14,"evidence":"import { validateMap, resolveNodeFiles } from './validate.mjs'"}},{"from":"VAL","to":"MET","branch":true,"note":"Glob resolution is checked too, because a structure pointing at no files cannot be drawn or measured at all.","citation":{"file":"skills/show-me/scripts/validate.mjs","line":398,"evidence":"const { expandGlobs, fileMetrics, discoverTestSiblings } = await import('./lib/metrics.mjs')"}}]},{"id":"invariant","label":"Proving edges never cross","summary":"Every shipped map is re-laid-out and checked: no connection may enter a building footprint.","trigger":"Anyone changes placement, routing or projection","payload":"routed grid points","steps":[{"from":"LT","to":"EXM","branch":true,"note":"It runs over every shipped map, skipping any whose citations do not resolve against the repository given.","citation":{"file":"skills/show-me/scripts/layout-test.mjs","line":19,"evidence":"const examples = join(here, '..', 'examples')"}},{"from":"LT","to":"LAY","note":"Placement and routing are recomputed, then every segment is tested against every footprint for intersection.","citation":{"file":"skills/show-me/scripts/layout-test.mjs","line":16,"evidence":"import { layout } from './lib/layout.mjs'"}},{"from":"LAY","to":"GEO","branch":true,"note":"Projection and mass come from geometry, so a change to the height scale is caught by this test as well.","citation":{"file":"skills/show-me/scripts/lib/layout.mjs","line":16,"evidence":"import { massOf, project } from './geometry.mjs'"}}]}],"chapters":[{"id":"read","title":"What the agent reads","lede":"The skill begins as prose, not code.","story":"Everything else here serves one document. It states the steps and the two rules that cannot be bent. It also points at three companions: the shape of the data file, how to find structure by reading code, and what each shape on the finished map means.\n\nNothing in this district reads code itself.","reveals":["INS","SCH","EXT","VIS"]},{"id":"gate","title":"The claim has to hold","lede":"A claim that cannot be checked is decoration.","story":"The agent writes a map; the gate opens every file it cites and confirms the quoted line is really there. That is the whole trust model, and it is why someone who has not read the code can believe the picture.\n\nIts own tests mutate a good map into eleven specific lies and assert each is caught.","reveals":["VAL","GT"]},{"id":"measure","title":"Measured, never asserted","lede":"Building sizes are counted, never chosen.","story":"Metrics resolves the globs a structure claims and counts files and lines. Geometry turns those counts into shape: height is lines of code on a square-root scale, footprint is file count.\n\nThere is no field an author could use to make a building bigger than its code.","reveals":["MET","GEO"]},{"id":"place","title":"Where everything goes","lede":"Placement is deterministic, and edges provably never cross a footprint.","story":"Each district gets a band of rows, ordered inside by how deep a thing sits in the dependency chain. Connections travel only in the reserved gaps between buildings.\n\nThat is the single reason the picture can draw every line before every building and never work out which is in front. A test checks that rule holds rather than trusting the argument for it.","reveals":["LAY","SVG","LT"]},{"id":"page","title":"One file you can send someone","lede":"The output is one file with nothing to install.","story":"The renderer runs the gate again, measures, lays out, emits the scene, and inlines the theme and the interaction layer into a single ASCII-only file. Same map in, same coordinates out, so two renders are diffable.\n\nThe page you are reading is that output.","reveals":["RND","APP","CSS"],"flow":"render"},{"id":"out","title":"The whole skill","lede":"Read the code, verify the claim, measure it, draw it.","story":"Two things come out of one data file: the page you are looking at, and the same map written as a document. Because both are generated, they cannot drift apart.\n\nThe example maps close the loop -- they are what the pipeline produces, and one of them is this map of the tool itself. The guard scripts run against them, so the artifacts are also the fixtures.","reveals":["EXM","TWN"],"flow":"gate"}]},"metrics":{"INS":{"fileCount":1,"testFiles":0,"loc":239,"testLoc":0,"largestFile":{"file":"skills/show-me/SKILL.md","loc":239},"fanIn":0,"fanOut":5,"rank":0,"floors":7,"capped":false,"rawFloors":7},"SCH":{"fileCount":1,"testFiles":0,"loc":247,"testLoc":0,"largestFile":{"file":"skills/show-me/references/schema.md","loc":247},"fanIn":1,"fanOut":0,"rank":0,"floors":7,"capped":false,"rawFloors":7},"EXT":{"fileCount":1,"testFiles":0,"loc":137,"testLoc":0,"largestFile":{"file":"skills/show-me/references/extraction.md","loc":137},"fanIn":1,"fanOut":1,"rank":0,"floors":6,"capped":false,"rawFloors":6},"VIS":{"fileCount":1,"testFiles":0,"loc":93,"testLoc":0,"largestFile":{"file":"skills/show-me/references/visual-language.md","loc":93},"fanIn":1,"fanOut":1,"rank":0,"floors":5,"capped":false,"rawFloors":5},"VAL":{"fileCount":1,"testFiles":0,"loc":578,"testLoc":0,"largestFile":{"file":"skills/show-me/scripts/validate.mjs","loc":578},"fanIn":4,"fanOut":1,"rank":2,"floors":11,"capped":false,"rawFloors":11},"GT":{"fileCount":1,"testFiles":1,"loc":193,"testLoc":193,"largestFile":{"file":"skills/show-me/scripts/self-test.mjs","loc":193},"fanIn":0,"fanOut":2,"rank":0,"floors":7,"capped":false,"rawFloors":7},"MET":{"fileCount":1,"testFiles":0,"loc":213,"testLoc":0,"largestFile":{"file":"skills/show-me/scripts/lib/metrics.mjs","loc":213},"fanIn":2,"fanOut":0,"rank":3,"floors":7,"capped":false,"rawFloors":7},"GEO":{"fileCount":1,"testFiles":0,"loc":159,"testLoc":0,"largestFile":{"file":"skills/show-me/scripts/lib/geometry.mjs","loc":159},"fanIn":5,"fanOut":0,"rank":3,"floors":6,"capped":false,"rawFloors":6},"LAY":{"fileCount":1,"testFiles":1,"loc":375,"testLoc":143,"largestFile":{"file":"skills/show-me/scripts/lib/layout.mjs","loc":375},"fanIn":2,"fanOut":1,"rank":2,"floors":9,"capped":false,"rawFloors":9},"SVG":{"fileCount":1,"testFiles":0,"loc":210,"testLoc":0,"largestFile":{"file":"skills/show-me/scripts/lib/svg.mjs","loc":210},"fanIn":1,"fanOut":1,"rank":2,"floors":7,"capped":false,"rawFloors":7},"RND":{"fileCount":1,"testFiles":0,"loc":312,"testLoc":0,"largestFile":{"file":"skills/show-me/scripts/render.mjs","loc":312},"fanIn":1,"fanOut":6,"rank":1,"floors":8,"capped":false,"rawFloors":8},"LT":{"fileCount":1,"testFiles":1,"loc":143,"testLoc":143,"largestFile":{"file":"skills/show-me/scripts/layout-test.mjs","loc":143},"fanIn":0,"fanOut":2,"rank":0,"floors":6,"capped":false,"rawFloors":6},"APP":{"fileCount":1,"testFiles":0,"loc":792,"testLoc":0,"largestFile":{"file":"skills/show-me/assets/app.js","loc":792},"fanIn":1,"fanOut":0,"rank":2,"floors":13,"capped":false,"rawFloors":13},"CSS":{"fileCount":1,"testFiles":0,"loc":523,"testLoc":0,"largestFile":{"file":"skills/show-me/assets/app.css","loc":523},"fanIn":1,"fanOut":0,"rank":2,"floors":11,"capped":false,"rawFloors":11},"EXM":{"fileCount":1,"testFiles":0,"loc":894,"testLoc":0,"largestFile":{"file":"skills/show-me/examples/show-me.system-map.json","loc":894},"fanIn":2,"fanOut":0,"rank":1,"floors":14,"capped":false,"rawFloors":14},"TWN":{"fileCount":1,"testFiles":0,"loc":229,"testLoc":0,"largestFile":{"file":"skills/show-me/scripts/twin.mjs","loc":229},"fanIn":0,"fanOut":2,"rank":0,"floors":7,"capped":false,"rawFloors":7}},"testAttribution":{"inScope":2,"attributed":1,"pairable":1,"reliable":true},"chapterViews":[{"minX":-74.7,"minY":-70,"maxX":432.29999999999995,"maxY":269.4},{"minX":-189.60000000000002,"minY":-70,"maxX":432.29999999999995,"maxY":269.4},{"minX":-305.2,"minY":-70,"maxX":432.29999999999995,"maxY":269.4},{"minX":-424.19999999999993,"minY":-70,"maxX":432.29999999999995,"maxY":385},{"minX":-618,"minY":-70,"maxX":432.29999999999995,"maxY":442.79999999999995},{"minX":-706.4,"minY":-70,"maxX":432.29999999999995,"maxY":442.79999999999995}],"revealedAt":{"INS":0,"SCH":0,"EXT":0,"VIS":0,"VAL":1,"GT":1,"MET":2,"GEO":2,"LAY":3,"SVG":3,"RND":4,"LT":3,"APP":4,"CSS":4,"EXM":5,"TWN":5}};</script>
+<script>
+/* Isometric system map - interaction layer.
+   Layout is baked in at build time; this file only handles view transform,
+   selection, and flow playback. Data arrives as window.__SYSTEM_MAP__. */
+(() => {
+  const DATA = window.__SYSTEM_MAP__;
+  if (!DATA) return;
+
+  const { map, metrics, testAttribution = { reliable: true } } = DATA;
+  const CHAPTERS = map.chapters || [];
+  const CHAPTER_VIEWS = DATA.chapterViews || [];
+  const nodeById = new Map(map.nodes.map((n) => [n.id, n]));
+  const flowById = new Map((map.flows || []).map((f) => [f.id, f]));
+
+  const $ = (sel) => document.querySelector(sel);
+  const scene = $('#scene');
+  const viewport = $('#viewport');
+  const flowLayer = scene.querySelector('.flow-layer');
+  const panel = $('#panel');
+  const tabs = [...document.querySelectorAll('.tab')];
+
+  const buildings = new Map(
+    [...scene.querySelectorAll('.bldg')].map((el) => [el.dataset.node, el]),
+  );
+  const edgeEls = [...scene.querySelectorAll('.edge')];
+  const edgeLabelEls = new Map(
+    [...scene.querySelectorAll('.edge-label')].map((el) => [el.dataset.edge, el]),
+  );
+  const districtEls = new Map(
+    [...scene.querySelectorAll('.district')].map((el) => [el.dataset.group, el]),
+  );
+  const edgeByIndex = new Map(edgeEls.map((el) => [el.dataset.edge, el]));
+  const edgeKey = (from, to) => `${from}>${to}`;
+  const edgesByHop = new Map();
+  for (const el of edgeEls) {
+    const key = edgeKey(el.dataset.from, el.dataset.to);
+    if (!edgesByHop.has(key)) edgesByHop.set(key, el);
+  }
+
+  const state = {
+    subject: { type: 'overview' },
+    tab: 0,
+    flowId: null,
+    stepIndex: -1,
+    playing: false,
+    // Last chapter by default: a reader who did not ask to be walked through
+    // should still land on the finished system rather than on three boxes.
+    chapter: CHAPTERS.length > 0 ? CHAPTERS.length - 1 : 0,
+  };
+
+  /* ---- view transform --------------------------------------------------- */
+  const baseBox = scene.getAttribute('viewBox').split(' ').map(Number);
+  const view = { scale: 1, x: 0, y: 0 };
+
+  function applyView() {
+    viewport.setAttribute(
+      'transform',
+      `translate(${view.x} ${view.y}) scale(${view.scale})`,
+    );
+  }
+
+  function resetView() {
+    view.scale = 1;
+    view.x = 0;
+    view.y = 0;
+    applyView();
+  }
+
+  /** Convert a client point into the SVG user space the viewport sits in. */
+  function toUserSpace(clientX, clientY) {
+    const rect = scene.getBoundingClientRect();
+    // preserveAspectRatio="xMidYMid meet": one uniform scale, centred.
+    const fit = Math.min(rect.width / baseBox[2], rect.height / baseBox[3]);
+    return {
+      x: baseBox[0] + (clientX - rect.left - (rect.width - baseBox[2] * fit) / 2) / fit,
+      y: baseBox[1] + (clientY - rect.top - (rect.height - baseBox[3] * fit) / 2) / fit,
+    };
+  }
+
+  function zoomAt(clientX, clientY, factor) {
+    const next = Math.min(6, Math.max(0.4, view.scale * factor));
+    const applied = next / view.scale;
+    const p = toUserSpace(clientX, clientY);
+    view.x = p.x - (p.x - view.x) * applied;
+    view.y = p.y - (p.y - view.y) * applied;
+    view.scale = next;
+    applyView();
+  }
+
+  scene.addEventListener('wheel', (event) => {
+    event.preventDefault();
+    zoomAt(event.clientX, event.clientY, event.deltaY < 0 ? 1.12 : 1 / 1.12);
+  }, { passive: false });
+
+  let drag = null;
+  scene.addEventListener('pointerdown', (event) => {
+    if (event.target.closest('.bldg')) return;
+    drag = { id: event.pointerId, x: event.clientX, y: event.clientY };
+    scene.classList.add('is-panning');
+    scene.setPointerCapture(event.pointerId);
+  });
+  scene.addEventListener('pointermove', (event) => {
+    if (!drag || drag.id !== event.pointerId) return;
+    const rect = scene.getBoundingClientRect();
+    const fit = Math.min(rect.width / baseBox[2], rect.height / baseBox[3]);
+    view.x += (event.clientX - drag.x) / fit;
+    view.y += (event.clientY - drag.y) / fit;
+    drag.x = event.clientX;
+    drag.y = event.clientY;
+    applyView();
+  });
+  const endDrag = () => { drag = null; scene.classList.remove('is-panning'); };
+  scene.addEventListener('pointerup', endDrag);
+  scene.addEventListener('pointercancel', endDrag);
+
+  $('#zoom-in').addEventListener('click', () => {
+    const r = scene.getBoundingClientRect();
+    zoomAt(r.left + r.width / 2, r.top + r.height / 2, 1.25);
+  });
+  $('#zoom-out').addEventListener('click', () => {
+    const r = scene.getBoundingClientRect();
+    zoomAt(r.left + r.width / 2, r.top + r.height / 2, 1 / 1.25);
+  });
+  $('#reset-view').addEventListener('click', () => {
+    resetView();
+    selectOverview();
+  });
+
+  /* ---- highlighting ----------------------------------------------------- */
+  /** Labels follow the highlight: showing all of them at once buries the map. */
+  function syncEdgeLabels() {
+    for (const [index, el] of edgeLabelEls) {
+      const edge = edgeByIndex.get(index);
+      const lit = !!edge && (edge.classList.contains('is-current')
+        || (edge.classList.contains('is-active') && state.subject.type !== 'flow'));
+      el.classList.toggle('is-shown', lit);
+    }
+  }
+
+  function clearHighlight() {
+    for (const el of buildings.values()) el.classList.remove('is-selected', 'is-dimmed');
+    for (const el of edgeEls) el.classList.remove('is-active', 'is-dimmed', 'is-current');
+    for (const el of districtEls.values()) el.classList.remove('is-active');
+    syncEdgeLabels();
+  }
+
+  function highlightNode(id) {
+    clearHighlight();
+    const neighbours = new Set([id]);
+    for (const el of edgeEls) {
+      if (el.dataset.from === id || el.dataset.to === id) {
+        el.classList.add('is-active');
+        neighbours.add(el.dataset.from);
+        neighbours.add(el.dataset.to);
+      } else {
+        el.classList.add('is-dimmed');
+      }
+    }
+    for (const [nodeId, el] of buildings) {
+      if (nodeId === id) el.classList.add('is-selected');
+      else if (!neighbours.has(nodeId)) el.classList.add('is-dimmed');
+    }
+    districtEls.get(nodeById.get(id)?.group)?.classList.add('is-active');
+    syncEdgeLabels();
+  }
+
+  function highlightFlow(flow) {
+    clearHighlight();
+    const touched = new Set();
+    for (const step of flow.steps) {
+      touched.add(step.from);
+      touched.add(step.to);
+      const el = edgesByHop.get(edgeKey(step.from, step.to));
+      if (el) el.classList.add('is-active');
+    }
+    for (const el of edgeEls) if (!el.classList.contains('is-active')) el.classList.add('is-dimmed');
+    for (const [nodeId, el] of buildings) if (!touched.has(nodeId)) el.classList.add('is-dimmed');
+    for (const nodeId of touched) districtEls.get(nodeById.get(nodeId)?.group)?.classList.add('is-active');
+    syncEdgeLabels();
+  }
+
+  /* ---- flow playback ----------------------------------------------------
+     A flow is read, not watched. Pacing it by path length -- which is what
+     geometry suggests -- makes a short hop with a long explanation flash past
+     and a long hop with three words crawl. Each step is paced by how long its
+     own note takes to read instead, and the panel follows the token so the
+     sentence explaining a hop is on screen while that hop is lit. */
+  const tokens = [];
+  let raf = null;
+  let clock = 0;
+  let lastFrame = 0;
+
+  const READING_WORDS_PER_SECOND = 3.2;   // unhurried prose, not skimming
+  const MIN_DWELL = 1500;
+  const MAX_DWELL = 4400;
+  const MIN_TRAVEL = 700;
+  const MAX_TRAVEL = 1900;
+  const STEP_GAP = 220;                   // beat between steps
+
+  function stepPaths(flow) {
+    return flow.steps.map((step, stepIndex) => ({
+      step,
+      stepIndex,
+      path: edgesByHop.get(edgeKey(step.from, step.to)) || null,
+    }));
+  }
+
+  function clearTokens() {
+    for (const token of tokens) token.el.remove();
+    tokens.length = 0;
+  }
+
+  /** How long a reader needs with this step's note, in milliseconds. */
+  function dwellFor(step) {
+    const words = String(step.note || '').trim().split(/\s+/).filter(Boolean).length;
+    const needed = (words / READING_WORDS_PER_SECOND) * 1000;
+    return Math.min(MAX_DWELL, Math.max(MIN_DWELL, needed));
+  }
+
+  function buildTokens(flow) {
+    clearTokens();
+    let offset = 0;
+    for (const { step, stepIndex, path } of stepPaths(flow)) {
+      if (!path) continue;
+      const length = path.getTotalLength();
+      const el = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      el.setAttribute('r', step.branch ? 2.6 : 3.4);
+      el.setAttribute('class', step.branch ? 'flow-token flow-token--branch' : 'flow-token');
+      el.style.visibility = 'hidden';
+      flowLayer.appendChild(el);
+      const travel = Math.min(MAX_TRAVEL, Math.max(MIN_TRAVEL, length * 2.4));
+      const dwell = dwellFor(step);
+      tokens.push({
+        el, path, length, stepIndex,
+        start: offset, travel, dwell, total: travel + dwell,
+        branch: !!step.branch,
+      });
+      offset += travel + dwell + STEP_GAP;
+    }
+    return offset;
+  }
+
+  let cycle = 1;
+  let shownStep = -1;
+
+  function frame(now) {
+    if (!state.playing) return;
+    if (lastFrame) clock += now - lastFrame;
+    lastFrame = now;
+    paintTokens(clock % cycle);
+    raf = requestAnimationFrame(frame);
+  }
+
+  /**
+   * Mark one step as the one being read: in the panel, on its edge, and on the
+   * two structures it runs between. Attributes are mutated in place rather than
+   * re-rendering the panel, which would throw away the reader's scroll position
+   * on every step.
+   */
+  function syncActiveStep(stepIndex) {
+    if (stepIndex === shownStep) return;
+    shownStep = stepIndex;
+    state.stepIndex = stepIndex;
+
+    const flow = flowById.get(state.flowId);
+    if (!flow) return;
+
+    for (const el of panel.querySelectorAll('.step[data-step]')) {
+      const isCurrent = Number(el.dataset.step) === stepIndex;
+      el.setAttribute('aria-current', String(isCurrent));
+      if (isCurrent) scrollStepIntoView(el);
+    }
+
+    const step = flow.steps[stepIndex];
+    for (const el of edgeEls) el.classList.remove('is-current');
+    for (const el of buildings.values()) el.classList.remove('is-selected');
+    if (!step) return;
+    edgesByHop.get(edgeKey(step.from, step.to))?.classList.add('is-current');
+    buildings.get(step.from)?.classList.remove('is-dimmed');
+    buildings.get(step.to)?.classList.remove('is-dimmed');
+    buildings.get(step.to)?.classList.add('is-selected');
+    syncEdgeLabels();
+  }
+
+  /**
+   * Bring one step into view inside the panel. Setting the container's
+   * scrollTop against a computed target rather than calling scrollIntoView
+   * keeps the effect inside this panel -- scrollIntoView can scroll an
+   * ancestor -- and leaves the result directly measurable. The smooth easing
+   * comes from `scroll-behavior` on .panel, which the reduced-motion query
+   * turns off.
+   */
+  function scrollStepIntoView(el) {
+    const view = panel.getBoundingClientRect();
+    const box = el.getBoundingClientRect();
+    const margin = 28;
+    if (box.top < view.top + margin) {
+      panel.scrollTop += box.top - view.top - margin;
+    } else if (box.bottom > view.bottom - margin) {
+      panel.scrollTop += box.bottom - view.bottom + margin;
+    }
+  }
+
+  function paintTokens(t) {
+    let current = -1;
+    for (const token of tokens) {
+      const local = t - token.start;
+      if (local < 0 || local > token.total) {
+        token.el.style.visibility = 'hidden';
+        continue;
+      }
+      current = token.stepIndex;
+      // A branch is a side effect: it runs out and comes back, so it bounces
+      // across the whole step rather than travelling one way.
+      const progress = token.branch
+        ? 1 - Math.abs(1 - (local / token.total) * 2)
+        : Math.min(1, local / token.travel);
+      const point = token.path.getPointAtLength(progress * token.length);
+      token.el.setAttribute('cx', point.x);
+      token.el.setAttribute('cy', point.y);
+      token.el.style.visibility = 'visible';
+    }
+    if (current !== -1) syncActiveStep(current);
+  }
+
+  function setPlaying(next) {
+    state.playing = next;
+    const button = $('#toggle-flow');
+    button.innerHTML = next ? '&#9646;&#9646; Pause flow' : '&#9654; Play flow';
+    button.setAttribute('aria-pressed', String(next));
+    // Always cancel before rescheduling. Treating the rAF handle as an
+    // "is running" flag deadlocks: a pause taken while the frame callback is
+    // not scheduled to run again leaves a stale non-null handle forever.
+    if (raf !== null) {
+      cancelAnimationFrame(raf);
+      raf = null;
+    }
+    if (next) {
+      lastFrame = 0;
+      raf = requestAnimationFrame(frame);
+    }
+  }
+
+  function selectFlow(flowId, { play = true } = {}) {
+    const flow = flowById.get(flowId);
+    if (!flow) return;
+    state.flowId = flowId;
+    state.stepIndex = -1;
+    shownStep = -1;
+    state.subject = { type: 'flow', id: flowId };
+    $('#flow-select').value = flowId;
+    highlightFlow(flow);
+    cycle = buildTokens(flow) + 500;
+    clock = 0;
+    setPlaying(play && !window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if (!state.playing) paintTokens(0);
+    renderPanel();
+    syncSidebar();
+  }
+
+  function traceOneStep() {
+    const flow = flowById.get(state.flowId);
+    if (!flow) return;
+    setPlaying(false);
+    shownStep = -1;
+    state.stepIndex = (state.stepIndex + 1) % flow.steps.length;
+    const entries = stepPaths(flow);
+    const active = entries[state.stepIndex];
+    clearHighlight();
+    highlightFlow(flow);
+    if (active.path) {
+      active.path.classList.add('is-active');
+      for (const el of edgeEls) if (el !== active.path) el.classList.add('is-dimmed');
+    }
+    buildings.get(active.step.from)?.classList.remove('is-dimmed');
+    buildings.get(active.step.to)?.classList.remove('is-dimmed');
+    buildings.get(active.step.to)?.classList.add('is-selected');
+    syncEdgeLabels();
+    const token = tokens.find((entry) => entry.stepIndex === state.stepIndex);
+    if (token) {
+      clearTokensVisibility();
+      // The far end is the resting position for both kinds: a branch token's
+      // bounce peaks at full path length before returning.
+      const point = token.path.getPointAtLength(token.length);
+      token.el.setAttribute('cx', point.x);
+      token.el.setAttribute('cy', point.y);
+      token.el.style.visibility = 'visible';
+    }
+    renderPanel();
+  }
+
+  function clearTokensVisibility() {
+    for (const token of tokens) token.el.style.visibility = 'hidden';
+  }
+
+  $('#toggle-flow').addEventListener('click', () => {
+    if (!state.flowId) { selectFlow($('#flow-select').value); return; }
+    setPlaying(!state.playing);
+  });
+  $('#trace-step').addEventListener('click', traceOneStep);
+  $('#flow-select').addEventListener('change', (event) => selectFlow(event.target.value));
+
+  /* ---- chapters ---------------------------------------------------------
+     The field is laid out once for the whole system; a chapter changes only
+     what is visible and where the camera sits, so a structure never moves and
+     the reader keeps one mental model. This is what makes a large system
+     readable without pretending it is small -- the alternative is capping the
+     node count and merging structures you can no longer describe. */
+  const revealables = [...scene.querySelectorAll('[data-reveal]')];
+
+  function applyReveal() {
+    if (CHAPTERS.length === 0) return;
+    for (const el of revealables) {
+      const reveal = Number(el.dataset.reveal);
+      el.classList.toggle('is-unrevealed', reveal > state.chapter);
+      el.classList.toggle('is-fresh', reveal === state.chapter && state.chapter > 0);
+    }
+    for (const row of document.querySelectorAll('.node-row')) {
+      const reveal = Number(row.dataset.reveal);
+      const ahead = reveal > state.chapter;
+      row.classList.toggle('is-unrevealed', ahead);
+      // Say when it appears, so an unrevealed row is a signpost rather than a
+      // dead entry. Clicking it already jumps to that chapter.
+      let when = row.querySelector('.node-row__when');
+      if (ahead && !when) {
+        when = document.createElement('span');
+        when.className = 'node-row__when';
+        row.appendChild(when);
+      }
+      if (when) {
+        when.textContent = `ch ${reveal + 1}`;
+        when.style.display = ahead ? '' : 'none';
+      }
+    }
+  }
+
+  /** Move the camera so a box fills the stage, without moving the scene. */
+  function fitTo(box) {
+    if (!box) return;
+    const width = box.maxX - box.minX;
+    const height = box.maxY - box.minY;
+    if (width <= 0 || height <= 0) return;          // a zero-size rect inverts the scale
+    const scale = Math.min(6, Math.max(0.2, Math.min(baseBox[2] / width, baseBox[3] / height)));
+    const centre = { x: (box.minX + box.maxX) / 2, y: (box.minY + box.maxY) / 2 };
+    view.scale = scale;
+    view.x = baseBox[0] + baseBox[2] / 2 - scale * centre.x;
+    view.y = baseBox[1] + baseBox[3] / 2 - scale * centre.y;
+    applyView();
+  }
+
+  function chapterOf(nodeId) {
+    return CHAPTERS.findIndex((chapter) => (chapter.reveals || []).includes(nodeId));
+  }
+
+  function setChapter(index, { keepSelection = false } = {}) {
+    if (CHAPTERS.length === 0) return;
+    state.chapter = Math.max(0, Math.min(CHAPTERS.length - 1, index));
+    const chapter = CHAPTERS[state.chapter];
+    applyReveal();
+    fitTo(CHAPTER_VIEWS[state.chapter]);
+    // Each chapter carries at most one flow, and only the last offers a picker.
+    const select = $('#flow-select');
+    if (select) {
+      const last = state.chapter === CHAPTERS.length - 1;
+      select.disabled = !last;
+      // Do not leave another chapter's flow named in the picker: on a chapter
+      // with no flow that reads as though one were running.
+      const placeholder = select.querySelector('option[value="__none"]')
+        || Object.assign(document.createElement('option'), { value: '__none', textContent: 'no flow this chapter' });
+      if (!placeholder.parentNode) select.appendChild(placeholder);
+      placeholder.hidden = Boolean(chapter.flow);
+      if (chapter.flow) selectFlow(chapter.flow, { play: false });
+      else {
+        setPlaying(false);
+        clearTokens();
+        clearHighlight();
+        select.value = '__none';
+        state.flowId = null;
+      }
+    }
+    // The chapter's own story is the default reading. Its flow still lights up
+    // and animates on the field, but burying the story behind the step list
+    // means the prose explaining the chapter is never the thing you land on.
+    if (!keepSelection) state.subject = { type: 'overview' };
+    syncRail();
+    renderPanel();
+    syncSidebar();
+  }
+
+  function syncRail() {
+    for (const mark of document.querySelectorAll('.rail__step')) {
+      mark.setAttribute('aria-current', String(Number(mark.dataset.chapter) === state.chapter));
+    }
+    const title = $('#rail-title');
+    if (title) title.textContent = CHAPTERS[state.chapter]?.title ?? '';
+    const counter = $('#chapter-counter');
+    if (counter) {
+      const shown = revealables.filter((el) => el.classList.contains('bldg')
+        && Number(el.dataset.reveal) <= state.chapter).length;
+      counter.textContent = `chapter ${state.chapter + 1}/${CHAPTERS.length}`
+        + ` \u00b7 ${shown}/${buildings.size} structures`;
+    }
+    const back = $('#chapter-back');
+    const next = $('#chapter-next');
+    if (back) back.disabled = state.chapter === 0;
+    if (next) next.disabled = state.chapter === CHAPTERS.length - 1;
+  }
+
+  function buildChapterUI() {
+    if (CHAPTERS.length === 0) return;
+    const controls = document.querySelector('.controls');
+    const nav = document.createElement('span');
+    nav.className = 'chapter-nav';
+    nav.innerHTML = '<button id="chapter-back" type="button">&#9666; Back</button>'
+      + '<button id="chapter-next" type="button">Next &#9656;</button>';
+    controls.insertBefore(nav, controls.firstChild);
+
+    const rail = document.createElement('div');
+    rail.className = 'rail';
+    rail.innerHTML = `<div class="rail__steps">${CHAPTERS.map((chapter, index) =>
+      `<button class="rail__step" type="button" data-chapter="${index}" `
+      + `title="${chapter.title.replace(/"/g, '&quot;')}">${index + 1}</button>`).join('')}</div>`
+      + '<div class="rail__title" id="rail-title"></div>';
+    document.querySelector('.stage').appendChild(rail);
+
+    const counter = document.createElement('div');
+    counter.className = 'stage__counter';
+    counter.id = 'chapter-counter';
+    document.querySelector('.stage__head').appendChild(counter);
+
+    $('#chapter-back').addEventListener('click', () => setChapter(state.chapter - 1));
+    $('#chapter-next').addEventListener('click', () => setChapter(state.chapter + 1));
+    for (const mark of rail.querySelectorAll('.rail__step')) {
+      mark.addEventListener('click', () => setChapter(Number(mark.dataset.chapter)));
+    }
+  }
+
+  /* ---- selection -------------------------------------------------------- */
+  function selectNode(id) {
+    // Clicking something the reader has not reached yet is a request to go
+    // there, not a dead link.
+    if (CHAPTERS.length > 0) {
+      const appears = chapterOf(id);
+      if (appears > state.chapter) { setChapter(appears, { keepSelection: true }); }
+    }
+    shownStep = -1;
+    state.subject = { type: 'node', id };
+    state.flowId = null;
+    setPlaying(false);
+    clearTokens();
+    highlightNode(id);
+    renderPanel();
+    syncSidebar();
+  }
+
+  function selectOverview() {
+    shownStep = -1;
+    state.subject = { type: 'overview' };
+    state.flowId = null;
+    setPlaying(false);
+    clearTokens();
+    clearHighlight();
+    renderPanel();
+    syncSidebar();
+  }
+
+  for (const [id, el] of buildings) {
+    el.addEventListener('click', () => selectNode(id));
+    el.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectNode(id); }
+    });
+  }
+  scene.addEventListener('click', (event) => {
+    if (!event.target.closest('.bldg')) selectOverview();
+  });
+
+  function syncSidebar() {
+    for (const row of document.querySelectorAll('.node-row')) {
+      row.setAttribute(
+        'aria-current',
+        String(state.subject.type === 'node' && row.dataset.node === state.subject.id),
+      );
+    }
+  }
+  for (const row of document.querySelectorAll('.node-row')) {
+    row.addEventListener('click', () => selectNode(row.dataset.node));
+  }
+
+  /* ---- explainer -------------------------------------------------------- */
+  const esc = (value) => String(value)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/[^\x20-\x7E\n\t]/g, (char) => '&#' + char.codePointAt(0) + ';');
+
+  const paragraphs = (text) => String(text)
+    .split(/\n{2,}/)
+    .map((chunk) => `<p>${esc(chunk.trim().replace(/\s+/g, ' '))}</p>`)
+    .join('');
+
+  function citation(cite) {
+    const ref = `${cite.file}:${cite.line}`;
+    return `<button class="cite" type="button" data-copy="${esc(ref)}" title="Click to copy ${esc(ref)}">`
+      + `${esc(ref)}<br><span class="cite__evidence">${esc(cite.evidence)}</span></button>`;
+  }
+
+  function nodePanel(node, tab) {
+    const m = metrics[node.id];
+    const confidence = node.confidence === 'inferred'
+      ? '<span class="tag tag--warn">inferred</span>' : '';
+    if (tab === 0) {
+      const capped = m.capped
+        ? `<p class="concern">Height is capped at 30 floors; the real mass is ${m.rawFloors} floors of code.</p>`
+        : '';
+      const untested = testAttribution.reliable && m.testFiles === 0 && m.loc > 200
+        ? '<p class="concern">No test files resolve to this node.</p>' : '';
+      return `<div class="panel__eyebrow">Selected structure</div>`
+        + `<h2 class="panel__title">${esc(node.label)}</h2>`
+        + `<div><span class="tag">${esc(node.kind)}</span>${confidence}</div>`
+        + paragraphs(node.whatItDoes)
+        + `<div class="metrics">`
+        + metric('source files', m.fileCount)
+        + metric('lines of code', m.loc.toLocaleString())
+        + metric('test files', m.testFiles)
+        + metric('depended on by', m.fanIn)
+        + `</div>${capped}${untested}`;
+    }
+    const concerns = (node.concerns || []).length
+      ? `<div class="panel__eyebrow">Condition</div>`
+        + node.concerns.map((c) => `<p class="concern">${esc(c)}</p>`).join('')
+      : '';
+    return `<div class="panel__eyebrow">Implementation</div>`
+      + `<h2 class="panel__title">${esc(node.label)}</h2>`
+      + paragraphs(node.howItsBuilt)
+      + concerns
+      + connections(node.id)
+      + `<div class="panel__eyebrow">Evidence</div>`
+      + node.citations.map(citation).join('')
+      + `<div class="panel__eyebrow">Largest file</div>`
+      + `<p>${esc(m.largestFile.file || 'n/a')} &#8212; ${m.largestFile.loc} lines</p>`;
+  }
+
+  const EDGE_VERB = {
+    call: 'calls', read: 'reads from', write: 'writes to', emit: 'publishes to',
+    consume: 'consumes from', http: 'reaches over the network', import: 'imports types from',
+  };
+  const EDGE_VERB_IN = {
+    call: 'called by', read: 'read by', write: 'written by', emit: 'published to by',
+    consume: 'consumed by', http: 'reached by', import: 'imported by',
+  };
+
+  /**
+   * Connections for one node, with the citation behind each. These are the
+   * claims the map makes about how this thing is wired, so they belong on the
+   * page rather than only in the highlight.
+   */
+  function connections(id) {
+    const out = map.edges.filter((edge) => edge.from === id);
+    const incoming = map.edges.filter((edge) => edge.to === id);
+    if (out.length === 0 && incoming.length === 0) {
+      return '<div class="panel__eyebrow">Connections</div><p>Nothing connects to this structure.</p>';
+    }
+    const row = (edge, other, verb) => {
+      const node = nodeById.get(other);
+      const inferred = edge.confidence === 'inferred' ? ' <span class="tag tag--warn">inferred</span>' : '';
+      const label = edge.label ? ` <span class="hop__label">${esc(edge.label)}</span>` : '';
+      const weight = edge.weight > 1 ? ` <span class="hop__label">${edge.weight} references</span>` : '';
+      return `<div class="hop">`
+        + `<button class="hop__jump" type="button" data-jump="${esc(other)}">`
+        + `${esc(verb)} <strong>${esc(node ? node.label : other)}</strong></button>`
+        + `${label}${weight}${inferred}</div>`
+        + citation(edge.citation);
+    };
+    return '<div class="panel__eyebrow">Connections out</div>'
+      + (out.length ? out.map((edge) => row(edge, edge.to, EDGE_VERB[edge.kind] || edge.kind)).join('') : '<p>None.</p>')
+      + '<div class="panel__eyebrow">Connections in</div>'
+      + (incoming.length ? incoming.map((edge) => row(edge, edge.from, EDGE_VERB_IN[edge.kind] || edge.kind)).join('') : '<p>None.</p>');
+  }
+
+  function metric(label, value) {
+    return `<div class="metric"><div class="metric__label">${esc(label)}</div>`
+      + `<div class="metric__value">${esc(value)}</div></div>`;
+  }
+
+  function flowPanel(flow, tab) {
+    if (tab === 0) {
+      const steps = flow.steps.map((step, i) => {
+        const branch = step.branch ? ' <span class="step__branch">[branch]</span>' : '';
+        return `<button class="step" type="button" data-step="${i}" aria-current="${i === state.stepIndex}">`
+          + `<span class="step__hop">${i + 1}. ${esc(step.from)} &#8594; ${esc(step.to)}${branch}</span><br>`
+          + `${esc(step.note)}</button>`;
+      }).join('');
+      return `<div class="panel__eyebrow">Selected flow</div>`
+        + `<h2 class="panel__title">${esc(flow.label)}</h2>`
+        + `<p class="lead">${esc(flow.summary)}</p>`
+        + (flow.trigger ? `<div class="panel__eyebrow">Trigger</div><p>${esc(flow.trigger)}</p>` : '')
+        + (flow.payload ? `<div class="panel__eyebrow">Payload</div><p><span class="tag">${esc(flow.payload)}</span></p>` : '')
+        + `<div class="panel__eyebrow">Steps</div><div class="steps">${steps}</div>`;
+    }
+    const current = state.stepIndex >= 0 ? state.stepIndex : 0;
+    return `<div class="panel__eyebrow">Evidence per step</div>`
+      + `<h2 class="panel__title">${esc(flow.label)}</h2>`
+      + flow.steps.map((step, i) => {
+        const mark = i === current ? ' aria-current="true"' : '';
+        return `<div class="step" data-step="${i}"${mark}><span class="step__hop">${i + 1}. ${esc(step.from)} &#8594; ${esc(step.to)}</span></div>`
+          + citation(step.citation);
+      }).join('');
+  }
+
+  function chapterPanel(tab) {
+    const chapter = CHAPTERS[state.chapter];
+    if (tab !== 0) return overviewPanel(1);
+    const chips = (chapter.reveals || [])
+      .map((id) => `<button class="chip" type="button" data-jump="${esc(id)}">`
+        + `${esc(nodeById.get(id)?.label ?? id)}</button>`).join('');
+    return `<div class="panel__eyebrow">Chapter ${state.chapter + 1} of ${CHAPTERS.length}</div>`
+      + `<h2 class="panel__title">${esc(chapter.title)}</h2>`
+      + `<p class="lead">${esc(chapter.lede)}</p>`
+      + paragraphs(chapter.story)
+      + (chips ? `<div class="panel__eyebrow">New in this chapter</div><div>${chips}</div>` : '')
+      + (chapter.flow ? `<div class="panel__eyebrow">Flow shown</div>`
+        + `<p>${esc(flowById.get(chapter.flow)?.summary ?? '')}</p>` : '')
+      + `<div class="panel__eyebrow">The whole system</div>`
+      + `<p>${esc(map.meta.subtitle || map.meta.title)} &mdash; `
+      + `${map.nodes.length} structures, ${map.edges.length} connections. `
+      + `Jump to the last chapter to see all of it at once.</p>`;
+  }
+
+  function overviewPanel(tab) {
+    if (tab === 0) {
+      return `<div class="panel__eyebrow">${esc(map.meta.repository)}</div>`
+        + `<h2 class="panel__title">${esc(map.meta.title)}</h2>`
+        + (map.meta.subtitle ? `<p class="lead">${esc(map.meta.subtitle)}</p>` : '')
+        + paragraphs(map.meta.overview)
+        + (map.meta.readingHint
+          ? `<div class="panel__eyebrow">How to read it</div><p>${esc(map.meta.readingHint)}</p>` : '');
+    }
+    const inferredNodes = map.nodes.filter((n) => n.confidence === 'inferred').length;
+    const inferredEdges = map.edges.filter((e) => e.confidence === 'inferred').length;
+    return `<div class="panel__eyebrow">How this map was built</div>`
+      + `<h2 class="panel__title">Provenance</h2>`
+      + `<p>Every structure, connection and flow step on this map carries a citation to a
+          file, a line, and a literal string found at that line. The map was rejected at
+          build time until all of them resolved.</p>`
+      + `<div class="metrics">`
+      + metric('commit', map.meta.commit)
+      + metric('branch', map.meta.branch || 'main')
+      + metric('structures', map.nodes.length)
+      + metric('connections', map.edges.length)
+      + metric('traced flows', (map.flows || []).length)
+      + metric('inferred', `${inferredNodes + inferredEdges}`)
+      + `</div>`
+      + `<div class="panel__eyebrow">Scope</div><p>${esc(map.meta.scope)}</p>`
+      + (testAttribution.inScope
+        ? `<div class="panel__eyebrow">Test coverage</div>`
+          + `<p>${testAttribution.inScope} test file(s) in scope, ${testAttribution.attributed} `
+          + `attributable to a structure.${testAttribution.reliable ? ''
+            : ' Too few attribute cleanly to mark structures untested, so that marker is not shown '
+              + '-- this repo names its tests after behaviour rather than after the file under test.'}</p>`
+        : '')
+      + (map.meta.omitted
+        ? `<div class="panel__eyebrow">What is not shown</div>`
+          + `<p class="concern">${map.meta.omitted.edges} connection(s) left off the map. `
+          + `${esc(map.meta.omitted.note)}</p>`
+        : '')
+      + `<div class="panel__eyebrow">Geometry</div>`
+      + `<p>Footprint tracks source file count, height tracks lines of code, and hatch
+          density tracks how many other structures depend on it. Nothing here was chosen
+          by eye. Dashed outlines are systems outside this repository, which is why they
+          are hollow.</p>`;
+  }
+
+  function renderPanel() {
+    const { subject, tab } = state;
+    if (subject.type === 'node') panel.innerHTML = nodePanel(nodeById.get(subject.id), tab);
+    else if (subject.type === 'flow') panel.innerHTML = flowPanel(flowById.get(subject.id), tab);
+    else if (CHAPTERS.length > 0) panel.innerHTML = chapterPanel(tab);
+    else panel.innerHTML = overviewPanel(tab);
+
+    for (const button of panel.querySelectorAll('[data-copy]')) {
+      button.addEventListener('click', () => {
+        navigator.clipboard?.writeText(button.dataset.copy);
+        const original = button.style.borderLeftColor;
+        button.style.borderLeftColor = 'var(--accent)';
+        setTimeout(() => { button.style.borderLeftColor = original; }, 600);
+      });
+    }
+    for (const button of panel.querySelectorAll('[data-jump]')) {
+      button.addEventListener('click', () => selectNode(button.dataset.jump));
+    }
+    for (const button of panel.querySelectorAll('[data-step]')) {
+      button.addEventListener('click', () => {
+        state.stepIndex = Number(button.dataset.step) - 1;
+        traceOneStep();
+      });
+    }
+  }
+
+  tabs.forEach((tab, index) => {
+    tab.addEventListener('click', () => {
+      state.tab = index;
+      tabs.forEach((t, i) => t.setAttribute('aria-selected', String(i === index)));
+      renderPanel();
+    });
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.target.matches('input, select, textarea')) return;
+    const nudge = 40 / view.scale;
+    if (event.key === 'ArrowLeft') { view.x += nudge; applyView(); }
+    else if (event.key === 'ArrowRight') { view.x -= nudge; applyView(); }
+    else if (event.key === 'ArrowUp') { view.y += nudge; applyView(); }
+    else if (event.key === 'ArrowDown') { view.y -= nudge; applyView(); }
+    else if (event.key === ']' || event.key === 'Enter') setChapter(state.chapter + 1);
+    else if (event.key === '[') setChapter(state.chapter - 1);
+    else if (event.key === 'Escape') selectOverview();
+    else if (event.key === '.') traceOneStep();
+    else return;
+    event.preventDefault();
+  });
+
+  buildChapterUI();
+  if (CHAPTERS.length > 0) setChapter(state.chapter);
+  else { applyView(); renderPanel(); }
+
+  // Small seek API so flow playback is verifiable without a visible frame loop.
+  // requestAnimationFrame does not fire in a hidden document, which is correct
+  // for animation but makes the token path untestable in a headless check.
+  window.__isomap = {
+    seek(ms) {
+      clock = ms;
+      paintTokens(cycle > 0 ? clock % cycle : 0);
+      return this.state;
+    },
+    selectFlow,
+    selectNode,
+    get state() {
+      return {
+        subject: { ...state.subject },
+        flowId: state.flowId,
+        playing: state.playing,
+        stepIndex: state.stepIndex,
+        cycle,
+        shownStep,
+        tokens: tokens.map((token) => ({
+          stepIndex: token.stepIndex,
+          start: Math.round(token.start),
+          travel: Math.round(token.travel),
+          dwell: Math.round(token.dwell),
+          total: Math.round(token.total),
+          length: Math.round(token.length),
+          branch: token.branch,
+          visible: token.el.style.visibility === 'visible',
+          cx: Number(token.el.getAttribute('cx')) || null,
+        })),
+      };
+    },
+  };
+})();
+</script>
+</body>
+</html>

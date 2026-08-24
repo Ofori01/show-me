@@ -2,6 +2,12 @@
 
 Point it at a codebase. Get back a picture you can trust, and a document that says the same thing.
 
+### [→ Open the live demo](https://ofori01.github.io/show-me/)
+
+Show me, mapped by Show me. Nothing to install — walk the six chapters, click a
+building to read what it does, play a flow and watch a payload travel a real,
+cited path. The same map as text is [SYSTEM.md](SYSTEM.md).
+
 Show me is a skill for coding agents. It reads a repository and produces an
 interactive isometric map of it: buildings on a grid whose size is measured from
 the real source, connections traced through actual call and data paths, and a
@@ -10,7 +16,6 @@ file, a line, and the text found at that line.**
 
 It works on any language. Nothing in it parses source code.
 
-_The map of Show me, drawn by Show me: [SYSTEM.md](SYSTEM.md) is the same map as text._
 
 ## Why the citations matter
 
@@ -64,24 +69,32 @@ Then ask for what you want:
 
 Requires Node 18 or newer. **No dependencies, no install step, no build.**
 
-## Try it on itself
+## Build it yourself
 
 The repository ships one example: the map of Show me, made by Show me. Its
-citations point inside this repo, so it works out of the box.
+citations point inside this repo, so every one of them resolves and you can
+watch the gate check them.
 
 ```bash
 cd skills/show-me
 node scripts/validate.mjs examples/show-me.system-map.json --repo ../..
-node scripts/render.mjs   examples/show-me.system-map.json --repo ../.. --out /tmp/show-me.html
+node scripts/render.mjs   examples/show-me.system-map.json --repo ../.. --out /tmp/map.html --standalone
 node scripts/twin.mjs     examples/show-me.system-map.json --repo ../.. --out /tmp/SYSTEM.md
 ```
 
-Serve the folder and open it — some browsers render a local file as a static
-snapshot with no scripts.
+`--standalone` wraps the page as its own document, which is what
+[the demo](https://ofori01.github.io/show-me/) is. Without it you get a fragment
+meant to be embedded in a host page.
+
+Open `/tmp/map.html` in a browser. If nothing moves, serve it instead — some
+browsers render a local file as a static snapshot with no scripts:
 
 ```bash
 python3 -m http.server 8000 --directory /tmp
 ```
+
+Break a citation on purpose and run the gate again. That is the whole idea in one
+command.
 
 ## What you get
 
@@ -114,6 +127,8 @@ skills/show-me/
     lib/                      measuring, projection, placement, scene
   assets/                     theme and interaction, inlined at render time
   examples/                   the map of this repo, by this repo
+docs/index.html               the live demo, rebuilt whenever the map changes
+SYSTEM.md                     the text twin of the same map
 ```
 
 ## Honest limits

@@ -280,25 +280,56 @@ ${js}</script>
   })
 }
 
+/**
+ * Wrap the fragment as a document that can be served on its own.
+ *
+ * The default output is a fragment because an Artifact host supplies the
+ * surrounding document. Served from a plain static host there is no such host,
+ * and with no declared charset a browser guesses -- which is why the fragment is
+ * ASCII-only. A standalone copy can simply say what it is.
+ */
+export function standalone(fragment, map) {
+  const titleMatch = /<title>([^<]*)<\/title>/.exec(fragment)
+  const title = titleMatch ? titleMatch[1] : map.meta.title
+  const description = `${map.meta.subtitle || map.meta.title} - ${map.nodes.length} structures, `
+    + `${map.edges.length} cited connections, measured from source.`
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="${esc(description)}">
+<meta name="color-scheme" content="light dark">
+<title>${esc(title)}</title>
+</head>
+<body>
+${fragment}</body>
+</html>
+`
+}
+
 const isMain = process.argv[1] && resolve(process.argv[1]).endsWith('render.mjs')
 if (isMain) {
   const args = process.argv.slice(2)
   const flags = new Map()
   const positional = []
   for (let i = 0; i < args.length; i += 1) {
-    if (args[i].startsWith('--')) { flags.set(args[i].slice(2), args[i + 1]); i += 1 } else positional.push(args[i])
+    if (args[i] === '--standalone') flags.set('standalone', true)
+    else if (args[i].startsWith('--')) { flags.set(args[i].slice(2), args[i + 1]); i += 1 }
+    else positional.push(args[i])
   }
   const mapPath = positional[0]
   const repoFlag = flags.has('repo') ? 1 : -1
   const outFlag = flags.has('out') ? 1 : -1
   if (!mapPath || outFlag === -1) {
-    console.error('usage: node scripts/render.mjs <map.json> --repo <root> --out <file.html>')
+    console.error('usage: node scripts/render.mjs <map.json> --repo <root> --out <file.html> [--standalone]')
     process.exit(2)
   }
   const repoRoot = repoFlag !== -1 ? resolve(flags.get('repo')) : process.cwd()
   const map = JSON.parse(readFileSync(resolve(mapPath), 'utf8'))
   try {
-    const html = await render(map, repoRoot)
+    const fragment = await render(map, repoRoot)
+    const html = flags.has('standalone') ? standalone(fragment, map) : fragment
     writeFileSync(resolve(flags.get('out')), html, 'utf8')
     console.log(`wrote ${flags.get('out')} (${(html.length / 1024).toFixed(1)} KB)`)
   } catch (error) {

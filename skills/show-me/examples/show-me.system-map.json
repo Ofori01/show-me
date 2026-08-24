@@ -15,7 +15,8 @@
       "skills/show-me/examples/*.json"
     ],
     "overview": "This skill turns a codebase into a picture you can trust. The design is one idea: an agent reads the code and writes down what it found, and scripts do only the things a careful reader reliably gets wrong.\n\nNothing here parses source. That is deliberate, and it is what makes the skill work on any language without configuration. An earlier version shipped detectors that extracted relations with regular expressions; every false relation it produced came from a pattern misreading code, it needed new rules for every stack, and the one genuinely valuable thing it did turned out to need no language knowledge at all.\n\nWhat the scripts keep is the work reading cannot do. Opening ninety cited files to check every quotation is exactly the tedium a reader skims. Counting lines is arithmetic, and the moment a building size is estimated the picture becomes decoration. Placing buildings so that no connection ever crosses a footprint is a geometric invariant with a test behind it.\n\nThe sharpest of them is the coverage check, because it catches the failure a reader cannot catch in themselves: reading a directory, feeling finished, and moving on. That feels identical to having finished. Subtracting claimed files from files in scope has no such blind spot, and on this project it surfaced a whole subsystem in a directory the author had already read.",
-    "readingHint": "Districts run top to bottom in the order the work happens: what you read, the gate, the measuring and drawing, the page, and what comes out."
+    "readingHint": "Districts run top to bottom in the order the work happens: what you read, the gate, the measuring and drawing, the page, and what comes out.",
+    "mapUrl": "https://ofori01.github.io/show-me/"
   },
   "groups": [
     {
