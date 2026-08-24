@@ -12,7 +12,7 @@ on:
 
 permissions:
   contents: read
-  id-token: write        # required for npm provenance
+  id-token: write        # npm exchanges this for a short-lived publish token
 
 jobs:
   publish:
@@ -22,8 +22,16 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           registry-url: https://registry.npmjs.org
+
+      # Trusted publishing needs a recent npm; the version bundled with a Node
+      # release lags. This also keeps the workflow working when the runner image
+      # changes underneath it.
+      - name: Use an npm that supports trusted publishing
+        run: |
+          npm install -g npm@latest
+          npm --version
 
       # A release tag that disagrees with package.json publishes the wrong
       # version under the right name, which is worse than failing here.
@@ -48,8 +56,9 @@ jobs:
       - name: Pack and show what would ship
         run: npm pack --dry-run
 
+      # No NODE_AUTH_TOKEN. Authentication comes from the OIDC identity of this
+      # workflow, which npm verifies against the trusted publisher configured on
+      # the package. Nothing long-lived is stored anywhere.
       - name: Publish
         if: github.event_name == 'release' || inputs.dry-run == false
-        run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
