@@ -1,0 +1,894 @@
+{
+  "schema": "system-map/v1",
+  "meta": {
+    "title": "Show me",
+    "subtitle": "the tool that drew this, drawn by itself",
+    "repository": "show-me",
+    "commit": "af7d5f27",
+    "branch": "main",
+    "scope": "The whole skill: the instructions an agent reads, the citation gate, the measuring and drawing pipeline, the published page runtime, and the example maps.",
+    "scopeGlobs": [
+      "skills/show-me/SKILL.md",
+      "skills/show-me/references/*.md",
+      "skills/show-me/scripts/**/*.mjs",
+      "skills/show-me/assets/*",
+      "skills/show-me/examples/*.json"
+    ],
+    "overview": "This skill turns a codebase into a picture you can trust. The design is one idea: an agent reads the code and writes down what it found, and scripts do only the things a careful reader reliably gets wrong.\n\nNothing here parses source. That is deliberate, and it is what makes the skill work on any language without configuration. An earlier version shipped detectors that extracted relations with regular expressions; every false relation it produced came from a pattern misreading code, it needed new rules for every stack, and the one genuinely valuable thing it did turned out to need no language knowledge at all.\n\nWhat the scripts keep is the work reading cannot do. Opening ninety cited files to check every quotation is exactly the tedium a reader skims. Counting lines is arithmetic, and the moment a building size is estimated the picture becomes decoration. Placing buildings so that no connection ever crosses a footprint is a geometric invariant with a test behind it.\n\nThe sharpest of them is the coverage check, because it catches the failure a reader cannot catch in themselves: reading a directory, feeling finished, and moving on. That feels identical to having finished. Subtracting claimed files from files in scope has no such blind spot, and on this project it surfaced a whole subsystem in a directory the author had already read.",
+    "readingHint": "Districts run top to bottom in the order the work happens: what you read, the gate, the measuring and drawing, the page, and what comes out."
+  },
+  "groups": [
+    {
+      "id": "read",
+      "label": "WHAT THE AGENT READS",
+      "order": 1
+    },
+    {
+      "id": "gate",
+      "label": "THE CITATION GATE",
+      "order": 2
+    },
+    {
+      "id": "measure",
+      "label": "MEASURING",
+      "order": 3
+    },
+    {
+      "id": "place",
+      "label": "PLACING AND DRAWING",
+      "order": 4
+    },
+    {
+      "id": "page",
+      "label": "THE PAGE",
+      "order": 5
+    },
+    {
+      "id": "out",
+      "label": "WHAT COMES OUT",
+      "order": 6
+    }
+  ],
+  "nodes": [
+    {
+      "id": "INS",
+      "label": "The instructions",
+      "group": "read",
+      "kind": "config",
+      "files": [
+        "skills/show-me/SKILL.md"
+      ],
+      "whatItDoes": "The whole method, written for an agent about to map something. It sets out the seven steps, the two rules that cannot be bent, and the division of labour that everything else follows.",
+      "howItsBuilt": "A single Markdown file with YAML frontmatter naming the skill and describing when to reach for it. It states the pipeline as shell commands and delegates the detail to three reference documents rather than restating it.",
+      "citations": [
+        {
+          "file": "skills/show-me/SKILL.md",
+          "line": 235,
+          "evidence": "node scripts/validate.mjs <map>.json --repo <worktree>"
+        }
+      ],
+      "confidence": "verified",
+      "short": "INSTRUCTIONS"
+    },
+    {
+      "id": "SCH",
+      "label": "The contract",
+      "group": "read",
+      "kind": "config",
+      "files": [
+        "skills/show-me/references/schema.md"
+      ],
+      "whatItDoes": "The exact shape of the file an agent writes. Everything the picture shows must be derivable from that document, so this is the one place where the format is defined.",
+      "howItsBuilt": "Annotated JSON with the required fields, the kinds a structure may take, the line styles each connection kind renders as, and the rules that keep a traced flow honest.",
+      "citations": [
+        {
+          "file": "skills/show-me/references/schema.md",
+          "line": 1,
+          "evidence": "# `system-map.json` contract (v1)"
+        }
+      ],
+      "confidence": "verified",
+      "short": "CONTRACT"
+    },
+    {
+      "id": "EXT",
+      "label": "How to read",
+      "group": "read",
+      "kind": "config",
+      "files": [
+        "skills/show-me/references/extraction.md"
+      ],
+      "whatItDoes": "The reading recipes. How to find what depends on what without guessing, how to cross an async boundary, and how to get a citation without ever typing a line number.",
+      "howItsBuilt": "Ranks evidence from strongest to weakest, gives the ripgrep invocations that produce file, line and literal text in one step, and explains why queue names in particular must be read rather than matched.",
+      "citations": [
+        {
+          "file": "skills/show-me/references/extraction.md",
+          "line": 1,
+          "evidence": "# Finding structure by reading"
+        }
+      ],
+      "confidence": "verified",
+      "short": "HOW TO READ"
+    },
+    {
+      "id": "VIS",
+      "label": "The visual language",
+      "group": "read",
+      "kind": "config",
+      "files": [
+        "skills/show-me/references/visual-language.md"
+      ],
+      "whatItDoes": "What the picture means. Which shape says a thing runs versus stores versus buffers, what makes one building taller than another, and why a hollow outline means the code is not ours.",
+      "howItsBuilt": "Binds every visual property to a measured number and records the formulas alongside a note to keep them in step with the geometry module, because a document that misstates the measurement undoes the promise it describes.",
+      "citations": [
+        {
+          "file": "skills/show-me/references/visual-language.md",
+          "line": 37,
+          "evidence": "These formulas live in `scripts/lib/geometry.mjs`. If you change them there,"
+        }
+      ],
+      "confidence": "verified",
+      "short": "VISUAL LANGUAGE"
+    },
+    {
+      "id": "VAL",
+      "label": "The citation gate",
+      "group": "gate",
+      "kind": "entry",
+      "files": [
+        "skills/show-me/scripts/validate.mjs"
+      ],
+      "whatItDoes": "The reason a map can be trusted. It opens every cited file and proves the quoted text is really there, and it reports which files in the declared region no structure claims. Nothing renders until it passes.",
+      "howItsBuilt": "Structural checks, then for each citation it reads the file and searches a few lines either side for the literal evidence string. Also holds the coverage report and a relocate mode that repairs citations whose lines drifted while the code moved.",
+      "citations": [
+        {
+          "file": "skills/show-me/scripts/validate.mjs",
+          "line": 55,
+          "evidence": "if (!window.includes(evidence)) {"
+        },
+        {
+          "file": "skills/show-me/scripts/validate.mjs",
+          "line": 371,
+          "evidence": "export async function scopeCoverage(map, repoRoot) {"
+        }
+      ],
+      "confidence": "verified",
+      "concerns": [
+        "Proves a cited line exists and says what was quoted, never that it was read correctly, so a misreading passes the gate."
+      ],
+      "short": "CITATION GATE"
+    },
+    {
+      "id": "GT",
+      "label": "The gate self-test",
+      "group": "gate",
+      "kind": "entry",
+      "files": [
+        "skills/show-me/scripts/self-test.mjs"
+      ],
+      "whatItDoes": "Proof that the gate actually rejects lies. It takes a real map, corrupts it eleven different ways, and checks that each corruption is caught.",
+      "howItsBuilt": "Picks whichever shipped example resolves against the repo, clones it per case, and mutates one thing: a fabricated quotation, a real string cited at the wrong line, a flow that teleports, a branch step misdeclared as a hop.",
+      "citations": [
+        {
+          "file": "skills/show-me/scripts/self-test.mjs",
+          "line": 14,
+          "evidence": "import { validateMap, resolveNodeFiles } from './validate.mjs'"
+        }
+      ],
+      "confidence": "verified",
+      "short": "GATE TESTS"
+    },
+    {
+      "id": "MET",
+      "label": "Measuring",
+      "group": "measure",
+      "kind": "service",
+      "files": [
+        "skills/show-me/scripts/lib/metrics.mjs"
+      ],
+      "whatItDoes": "Counts. How many files a structure holds and how many lines they run to, plus which of them are tests. Building size comes from here and nowhere else.",
+      "howItsBuilt": "A dependency-free glob matcher over a directory walk, line counting that ignores blanks, and sibling discovery that finds a test file next to its subject whatever the language calls it.",
+      "citations": [
+        {
+          "file": "skills/show-me/scripts/lib/metrics.mjs",
+          "line": 96,
+          "evidence": "export function expandGlobs(repoRoot, patterns) {"
+        },
+        {
+          "file": "skills/show-me/scripts/lib/metrics.mjs",
+          "line": 28,
+          "evidence": "const TEST_PATTERN = new RegExp(["
+        }
+      ],
+      "confidence": "verified",
+      "short": "METRICS"
+    },
+    {
+      "id": "GEO",
+      "label": "Projection and mass",
+      "group": "measure",
+      "kind": "service",
+      "files": [
+        "skills/show-me/scripts/lib/geometry.mjs"
+      ],
+      "whatItDoes": "Turns measurements into shapes. It decides how wide and how tall a structure is from its file count and line count, and produces the three visible faces of every building.",
+      "howItsBuilt": "A two-to-one isometric projection, a square-root height scale so a range spanning three orders of magnitude stays legible, and one branch per shape returning its own mesh.",
+      "citations": [
+        {
+          "file": "skills/show-me/scripts/lib/geometry.mjs",
+          "line": 32,
+          "evidence": "export function massOf({ fileCount, loc }) {"
+        },
+        {
+          "file": "skills/show-me/scripts/lib/geometry.mjs",
+          "line": 12,
+          "evidence": "export function project(gx, gy, z = 0) {"
+        }
+      ],
+      "confidence": "verified",
+      "short": "GEOMETRY"
+    },
+    {
+      "id": "LAY",
+      "label": "Placement and routing",
+      "group": "place",
+      "kind": "service",
+      "files": [
+        "skills/show-me/scripts/lib/layout.mjs"
+      ],
+      "whatItDoes": "Decides where everything sits. Each group becomes a raised band of its own. Every connection travels only through the gaps between buildings, which is why no line is ever ambiguously in front of or behind one.",
+      "howItsBuilt": "Groups become contiguous row bands, columns and rows size to their own contents, and connections route through reserved corridors with lanes assigned by interval colouring so two routes contend only where they actually overlap.",
+      "citations": [
+        {
+          "file": "skills/show-me/scripts/lib/layout.mjs",
+          "line": 16,
+          "evidence": "import { massOf, project } from './geometry.mjs'"
+        }
+      ],
+      "confidence": "verified",
+      "short": "LAYOUT"
+    },
+    {
+      "id": "SVG",
+      "label": "The scene",
+      "group": "place",
+      "kind": "service",
+      "files": [
+        "skills/show-me/scripts/lib/svg.mjs"
+      ],
+      "whatItDoes": "Draws the field: the ground, the raised district platforms, the connections, the buildings painted far to near, and the labels that appear only when a connection is highlighted.",
+      "howItsBuilt": "Emits inline SVG from coordinates already computed, so the browser does no layout work and the markup is diffable between runs. Hatch density on a roof encodes how many other structures depend on it.",
+      "citations": [
+        {
+          "file": "skills/show-me/scripts/lib/svg.mjs",
+          "line": 4,
+          "evidence": "import { buildMesh, groundGrid, project } from './geometry.mjs'"
+        }
+      ],
+      "confidence": "verified",
+      "short": "SCENE"
+    },
+    {
+      "id": "RND",
+      "label": "The assembler",
+      "group": "page",
+      "kind": "entry",
+      "files": [
+        "skills/show-me/scripts/render.mjs"
+      ],
+      "whatItDoes": "Puts the page together. It refuses to run on a map that has not passed the gate. Then it measures, places, draws, and folds everything into one file that needs no server and no build step.",
+      "howItsBuilt": "Runs the gate first, resolves globs to measurements, calls layout and the scene emitter, then inlines the stylesheet, the interaction layer and the map itself as pure ASCII so no host charset can corrupt it.",
+      "citations": [
+        {
+          "file": "skills/show-me/scripts/render.mjs",
+          "line": 16,
+          "evidence": "import { validateMap, resolveNodeFiles } from './validate.mjs'"
+        },
+        {
+          "file": "skills/show-me/scripts/render.mjs",
+          "line": 218,
+          "evidence": "const css = readFileSync(join(assets, 'app.css'), 'utf8')"
+        }
+      ],
+      "confidence": "verified",
+      "short": "RENDERER"
+    },
+    {
+      "id": "LT",
+      "label": "The layout invariants",
+      "group": "place",
+      "kind": "entry",
+      "files": [
+        "skills/show-me/scripts/layout-test.mjs"
+      ],
+      "whatItDoes": "Proof that a connection never enters a building. That single property is the only reason the scene can draw every line before every building without sorting them by depth.",
+      "howItsBuilt": "Recomputes the layout for every shipped map and asserts no route enters a footprint, no footprints overlap, everything falls inside the frame, districts are contiguous, and two runs agree exactly.",
+      "citations": [
+        {
+          "file": "skills/show-me/scripts/layout-test.mjs",
+          "line": 16,
+          "evidence": "import { layout } from './lib/layout.mjs'"
+        }
+      ],
+      "confidence": "verified",
+      "short": "LAYOUT TESTS"
+    },
+    {
+      "id": "APP",
+      "label": "The interaction layer",
+      "group": "page",
+      "kind": "ui",
+      "files": [
+        "skills/show-me/assets/app.js"
+      ],
+      "whatItDoes": "Everything the page does once it is open. Panning and zooming, clicking a structure to read about it, and playing a traced path one step at a time. The pace is set by how long each step takes to read.",
+      "howItsBuilt": "Vanilla JavaScript over the pre-computed scene. Flow playback gives each step a travel time from its path length and a dwell from its own note, and scrolls the panel so the sentence explaining a hop is on screen while that hop is lit.",
+      "citations": [
+        {
+          "file": "skills/show-me/assets/app.js",
+          "line": 192,
+          "evidence": "const READING_WORDS_PER_SECOND = 3.2;   // unhurried prose, not skimming"
+        },
+        {
+          "file": "skills/show-me/assets/app.js",
+          "line": 292,
+          "evidence": "function scrollStepIntoView(el) {"
+        }
+      ],
+      "confidence": "verified",
+      "short": "INTERACTION"
+    },
+    {
+      "id": "CSS",
+      "label": "The theme",
+      "group": "page",
+      "kind": "config",
+      "files": [
+        "skills/show-me/assets/app.css"
+      ],
+      "whatItDoes": "How the page looks in either colour scheme, and the panel layout around the map. Colour never encodes a category, so the picture survives being printed or read by someone colour-blind.",
+      "howItsBuilt": "One complete palette as custom properties, redefined for dark under both a media query and an explicit attribute so every combination of viewer preference resolves. Components only ever read tokens.",
+      "citations": [
+        {
+          "file": "skills/show-me/assets/app.css",
+          "line": 1,
+          "evidence": "@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono"
+        }
+      ],
+      "confidence": "verified",
+      "concerns": [
+        "Pulls a webfont from Google Fonts, the one external host an artifact may reach; every face declares a fallback stack behind it."
+      ],
+      "short": "THEME"
+    },
+    {
+      "id": "EXM",
+      "label": "The example maps",
+      "group": "out",
+      "kind": "store",
+      "files": [
+        "skills/show-me/examples/*.system-map.json"
+      ],
+      "whatItDoes": "Three finished maps, which double as the fixtures both guard scripts run against. One of them is this map: the skill described by itself.",
+      "howItsBuilt": "Plain JSON conforming to the contract. Each cites paths in the repository it was built from, so a guard pointed at a different checkout skips it with a note rather than failing.",
+      "citations": [
+        {
+          "file": "skills/show-me/examples/show-me.system-map.json",
+          "line": 2,
+          "evidence": "\"schema\": \"system-map/v1\""
+        }
+      ],
+      "confidence": "verified",
+      "concerns": [
+        "Citations are repo-relative, so extracting the skill on its own leaves the example maps unresolvable."
+      ],
+      "short": "EXAMPLE MAPS"
+    },
+    {
+      "id": "TWN",
+      "label": "The text twin",
+      "short": "TEXT TWIN",
+      "group": "out",
+      "kind": "service",
+      "files": [
+        "skills/show-me/scripts/twin.mjs"
+      ],
+      "whatItDoes": "Writes the same map out as a document instead of a picture. The picture is better for grasping shape; the words are better for everything afterwards. They can be searched, compared between two versions, reviewed alongside a code change, and read where there is no browser.",
+      "howItsBuilt": "Takes the same data file the page is drawn from, re-runs the gate, resolves the file globs for their counts, and emits Markdown: a header table, the reading order, one section per structure with its connections and the citation behind each, then the traced flows and a provenance note.",
+      "citations": [
+        {
+          "file": "skills/show-me/scripts/twin.mjs",
+          "line": 33,
+          "evidence": "export async function twin(map, repoRoot) {"
+        },
+        {
+          "file": "skills/show-me/scripts/twin.mjs",
+          "line": 243,
+          "evidence": "writeFileSync(resolve(flags.get('out')), text, 'utf8')"
+        }
+      ],
+      "confidence": "verified"
+    }
+  ],
+  "edges": [
+    {
+      "from": "INS",
+      "to": "SCH",
+      "kind": "import",
+      "citation": {
+        "file": "skills/show-me/SKILL.md",
+        "line": 57,
+        "evidence": "Read `references/schema.md` before writing any JSON"
+      },
+      "confidence": "verified",
+      "label": "the contract"
+    },
+    {
+      "from": "INS",
+      "to": "EXT",
+      "kind": "import",
+      "citation": {
+        "file": "skills/show-me/SKILL.md",
+        "line": 58,
+        "evidence": "Read `references/extraction.md` for how to find structure by reading"
+      },
+      "confidence": "verified",
+      "label": "how to read"
+    },
+    {
+      "from": "INS",
+      "to": "VIS",
+      "kind": "import",
+      "citation": {
+        "file": "skills/show-me/SKILL.md",
+        "line": 60,
+        "evidence": "Read `references/visual-language.md` for what each shape and channel means"
+      },
+      "confidence": "verified"
+    },
+    {
+      "from": "INS",
+      "to": "VAL",
+      "kind": "call",
+      "citation": {
+        "file": "skills/show-me/SKILL.md",
+        "line": 235,
+        "evidence": "node scripts/validate.mjs <map>.json --repo <worktree>"
+      },
+      "confidence": "verified",
+      "label": "step 5"
+    },
+    {
+      "from": "INS",
+      "to": "RND",
+      "kind": "call",
+      "citation": {
+        "file": "skills/show-me/SKILL.md",
+        "line": 238,
+        "evidence": "node scripts/render.mjs   <map>.json --repo <worktree> --out <out>.html"
+      },
+      "confidence": "verified",
+      "label": "step 6"
+    },
+    {
+      "from": "VAL",
+      "to": "MET",
+      "kind": "call",
+      "citation": {
+        "file": "skills/show-me/scripts/validate.mjs",
+        "line": 398,
+        "evidence": "const { expandGlobs, fileMetrics, discoverTestSiblings } = await import('./lib/metrics.mjs')"
+      },
+      "confidence": "verified",
+      "label": "measure globs"
+    },
+    {
+      "from": "RND",
+      "to": "VAL",
+      "kind": "call",
+      "citation": {
+        "file": "skills/show-me/scripts/render.mjs",
+        "line": 16,
+        "evidence": "import { validateMap, resolveNodeFiles } from './validate.mjs'"
+      },
+      "confidence": "verified",
+      "label": "gate first"
+    },
+    {
+      "from": "RND",
+      "to": "LAY",
+      "kind": "call",
+      "citation": {
+        "file": "skills/show-me/scripts/render.mjs",
+        "line": 17,
+        "evidence": "import { layout } from './lib/layout.mjs'"
+      },
+      "confidence": "verified"
+    },
+    {
+      "from": "RND",
+      "to": "SVG",
+      "kind": "call",
+      "citation": {
+        "file": "skills/show-me/scripts/render.mjs",
+        "line": 18,
+        "evidence": "import { renderScene, escapeHtml as esc, DEFAULT_SHAPE }"
+      },
+      "confidence": "verified"
+    },
+    {
+      "from": "RND",
+      "to": "GEO",
+      "kind": "call",
+      "citation": {
+        "file": "skills/show-me/scripts/render.mjs",
+        "line": 19,
+        "evidence": "import { massOf } from './lib/geometry.mjs'"
+      },
+      "confidence": "verified"
+    },
+    {
+      "from": "RND",
+      "to": "CSS",
+      "kind": "read",
+      "citation": {
+        "file": "skills/show-me/scripts/render.mjs",
+        "line": 218,
+        "evidence": "const css = readFileSync(join(assets, 'app.css'), 'utf8')"
+      },
+      "confidence": "verified",
+      "label": "inlined"
+    },
+    {
+      "from": "RND",
+      "to": "APP",
+      "kind": "read",
+      "citation": {
+        "file": "skills/show-me/scripts/render.mjs",
+        "line": 219,
+        "evidence": "const js = readFileSync(join(assets, 'app.js'), 'utf8')"
+      },
+      "confidence": "verified",
+      "label": "inlined"
+    },
+    {
+      "from": "LAY",
+      "to": "GEO",
+      "kind": "call",
+      "citation": {
+        "file": "skills/show-me/scripts/lib/layout.mjs",
+        "line": 16,
+        "evidence": "import { massOf, project } from './geometry.mjs'"
+      },
+      "confidence": "verified"
+    },
+    {
+      "from": "SVG",
+      "to": "GEO",
+      "kind": "call",
+      "citation": {
+        "file": "skills/show-me/scripts/lib/svg.mjs",
+        "line": 4,
+        "evidence": "import { buildMesh, groundGrid, project } from './geometry.mjs'"
+      },
+      "confidence": "verified"
+    },
+    {
+      "from": "GT",
+      "to": "VAL",
+      "kind": "call",
+      "citation": {
+        "file": "skills/show-me/scripts/self-test.mjs",
+        "line": 14,
+        "evidence": "import { validateMap, resolveNodeFiles } from './validate.mjs'"
+      },
+      "confidence": "verified",
+      "label": "eleven lies"
+    },
+    {
+      "from": "GT",
+      "to": "EXM",
+      "kind": "read",
+      "citation": {
+        "file": "skills/show-me/scripts/self-test.mjs",
+        "line": 26,
+        "evidence": "for (const name of readdirSync(examples).filter((f) => f.endsWith('.system-map.json')).sort())"
+      },
+      "confidence": "verified",
+      "label": "fixture"
+    },
+    {
+      "from": "LT",
+      "to": "LAY",
+      "kind": "call",
+      "citation": {
+        "file": "skills/show-me/scripts/layout-test.mjs",
+        "line": 16,
+        "evidence": "import { layout } from './lib/layout.mjs'"
+      },
+      "confidence": "verified"
+    },
+    {
+      "from": "LT",
+      "to": "EXM",
+      "kind": "read",
+      "citation": {
+        "file": "skills/show-me/scripts/layout-test.mjs",
+        "line": 19,
+        "evidence": "const examples = join(here, '..', 'examples')"
+      },
+      "confidence": "verified"
+    },
+    {
+      "from": "VIS",
+      "to": "GEO",
+      "kind": "import",
+      "citation": {
+        "file": "skills/show-me/references/visual-language.md",
+        "line": 37,
+        "evidence": "These formulas live in `scripts/lib/geometry.mjs`"
+      },
+      "confidence": "verified"
+    },
+    {
+      "from": "EXT",
+      "to": "MET",
+      "kind": "import",
+      "citation": {
+        "file": "skills/show-me/references/extraction.md",
+        "line": 96,
+        "evidence": "REPO=/path/to/worktree node -e \"import('./scripts/lib/metrics.mjs')"
+      },
+      "confidence": "verified"
+    },
+    {
+      "from": "TWN",
+      "to": "VAL",
+      "kind": "call",
+      "label": "gate first",
+      "confidence": "verified",
+      "citation": {
+        "file": "skills/show-me/scripts/twin.mjs",
+        "line": 18,
+        "evidence": "import { validateMap, resolveNodeFiles, scopeCoverage } from './validate.mjs'"
+      }
+    },
+    {
+      "from": "TWN",
+      "to": "GEO",
+      "kind": "import",
+      "confidence": "verified",
+      "citation": {
+        "file": "skills/show-me/scripts/twin.mjs",
+        "line": 19,
+        "evidence": "import { massOf } from './lib/geometry.mjs'"
+      }
+    }
+  ],
+  "flows": [
+    {
+      "id": "render",
+      "label": "From map to page",
+      "summary": "A validated map becomes one self-contained HTML file: gated, measured, placed, drawn, then inlined.",
+      "trigger": "The author runs render.mjs on a map that has passed the gate",
+      "payload": "system-map.json",
+      "steps": [
+        {
+          "from": "INS",
+          "to": "RND",
+          "note": "The pipeline hands the map to the assembler, which is the only step that produces a file anyone looks at.",
+          "citation": {
+            "file": "skills/show-me/SKILL.md",
+            "line": 238,
+            "evidence": "node scripts/render.mjs   <map>.json --repo <worktree> --out <out>.html"
+          }
+        },
+        {
+          "from": "RND",
+          "to": "VAL",
+          "branch": true,
+          "note": "The gate runs again first, so a map that fails verification cannot be rendered even by accident.",
+          "citation": {
+            "file": "skills/show-me/scripts/render.mjs",
+            "line": 16,
+            "evidence": "import { validateMap, resolveNodeFiles } from './validate.mjs'"
+          }
+        },
+        {
+          "from": "RND",
+          "to": "GEO",
+          "branch": true,
+          "note": "Measured file counts and line counts become a footprint and a height, which is why no field can inflate a building.",
+          "citation": {
+            "file": "skills/show-me/scripts/render.mjs",
+            "line": 19,
+            "evidence": "import { massOf } from './lib/geometry.mjs'"
+          }
+        },
+        {
+          "from": "RND",
+          "to": "LAY",
+          "branch": true,
+          "note": "Groups become raised bands and every connection is routed through the corridors between buildings.",
+          "citation": {
+            "file": "skills/show-me/scripts/render.mjs",
+            "line": 17,
+            "evidence": "import { layout } from './lib/layout.mjs'"
+          }
+        },
+        {
+          "from": "RND",
+          "to": "SVG",
+          "branch": true,
+          "note": "Final coordinates are emitted as inline SVG, so the browser does no layout work and two runs are diffable.",
+          "citation": {
+            "file": "skills/show-me/scripts/render.mjs",
+            "line": 18,
+            "evidence": "import { renderScene, escapeHtml as esc, DEFAULT_SHAPE }"
+          }
+        },
+        {
+          "from": "RND",
+          "to": "APP",
+          "branch": true,
+          "note": "The stylesheet, the interaction layer and the map itself are inlined as pure ASCII, leaving one portable file.",
+          "citation": {
+            "file": "skills/show-me/scripts/render.mjs",
+            "line": 219,
+            "evidence": "const js = readFileSync(join(assets, 'app.js'), 'utf8')"
+          }
+        }
+      ]
+    },
+    {
+      "id": "gate",
+      "label": "Rejecting a fabricated map",
+      "summary": "A real map is corrupted eleven ways and the gate must catch every one of them.",
+      "trigger": "Anyone changes the validator or the schema",
+      "payload": "a mutated clone of a real map",
+      "steps": [
+        {
+          "from": "GT",
+          "to": "EXM",
+          "branch": true,
+          "note": "It picks whichever shipped example resolves here, so the gate can still be tested from a checkout missing the others.",
+          "citation": {
+            "file": "skills/show-me/scripts/self-test.mjs",
+            "line": 26,
+            "evidence": "for (const name of readdirSync(examples).filter((f) => f.endsWith('.system-map.json')).sort())"
+          }
+        },
+        {
+          "from": "GT",
+          "to": "VAL",
+          "note": "Each case clones that map, breaks exactly one thing, and asserts the gate rejects it for the expected reason.",
+          "citation": {
+            "file": "skills/show-me/scripts/self-test.mjs",
+            "line": 14,
+            "evidence": "import { validateMap, resolveNodeFiles } from './validate.mjs'"
+          }
+        },
+        {
+          "from": "VAL",
+          "to": "MET",
+          "branch": true,
+          "note": "Glob resolution is checked too, because a structure pointing at no files cannot be drawn or measured at all.",
+          "citation": {
+            "file": "skills/show-me/scripts/validate.mjs",
+            "line": 398,
+            "evidence": "const { expandGlobs, fileMetrics, discoverTestSiblings } = await import('./lib/metrics.mjs')"
+          }
+        }
+      ]
+    },
+    {
+      "id": "invariant",
+      "label": "Proving edges never cross",
+      "summary": "Every shipped map is re-laid-out and checked: no connection may enter a building footprint.",
+      "trigger": "Anyone changes placement, routing or projection",
+      "payload": "routed grid points",
+      "steps": [
+        {
+          "from": "LT",
+          "to": "EXM",
+          "branch": true,
+          "note": "It runs over every shipped map, skipping any whose citations do not resolve against the repository given.",
+          "citation": {
+            "file": "skills/show-me/scripts/layout-test.mjs",
+            "line": 19,
+            "evidence": "const examples = join(here, '..', 'examples')"
+          }
+        },
+        {
+          "from": "LT",
+          "to": "LAY",
+          "note": "Placement and routing are recomputed, then every segment is tested against every footprint for intersection.",
+          "citation": {
+            "file": "skills/show-me/scripts/layout-test.mjs",
+            "line": 16,
+            "evidence": "import { layout } from './lib/layout.mjs'"
+          }
+        },
+        {
+          "from": "LAY",
+          "to": "GEO",
+          "branch": true,
+          "note": "Projection and mass come from geometry, so a change to the height scale is caught by this test as well.",
+          "citation": {
+            "file": "skills/show-me/scripts/lib/layout.mjs",
+            "line": 16,
+            "evidence": "import { massOf, project } from './geometry.mjs'"
+          }
+        }
+      ]
+    }
+  ],
+  "chapters": [
+    {
+      "id": "read",
+      "title": "What the agent reads",
+      "lede": "The skill begins as prose, not code.",
+      "story": "Everything else here serves one document. It states the steps and the two rules that cannot be bent. It also points at three companions: the shape of the data file, how to find structure by reading code, and what each shape on the finished map means.\n\nNothing in this district reads code itself.",
+      "reveals": [
+        "INS",
+        "SCH",
+        "EXT",
+        "VIS"
+      ]
+    },
+    {
+      "id": "gate",
+      "title": "The claim has to hold",
+      "lede": "A claim that cannot be checked is decoration.",
+      "story": "The agent writes a map; the gate opens every file it cites and confirms the quoted line is really there. That is the whole trust model, and it is why someone who has not read the code can believe the picture.\n\nIts own tests mutate a good map into eleven specific lies and assert each is caught.",
+      "reveals": [
+        "VAL",
+        "GT"
+      ]
+    },
+    {
+      "id": "measure",
+      "title": "Measured, never asserted",
+      "lede": "Building sizes are counted, never chosen.",
+      "story": "Metrics resolves the globs a structure claims and counts files and lines. Geometry turns those counts into shape: height is lines of code on a square-root scale, footprint is file count.\n\nThere is no field an author could use to make a building bigger than its code.",
+      "reveals": [
+        "MET",
+        "GEO"
+      ]
+    },
+    {
+      "id": "place",
+      "title": "Where everything goes",
+      "lede": "Placement is deterministic, and edges provably never cross a footprint.",
+      "story": "Each district gets a band of rows, ordered inside by how deep a thing sits in the dependency chain. Connections travel only in the reserved gaps between buildings.\n\nThat is the single reason the picture can draw every line before every building and never work out which is in front. A test checks that rule holds rather than trusting the argument for it.",
+      "reveals": [
+        "LAY",
+        "SVG",
+        "LT"
+      ]
+    },
+    {
+      "id": "page",
+      "title": "One file you can send someone",
+      "lede": "The output is one file with nothing to install.",
+      "story": "The renderer runs the gate again, measures, lays out, emits the scene, and inlines the theme and the interaction layer into a single ASCII-only file. Same map in, same coordinates out, so two renders are diffable.\n\nThe page you are reading is that output.",
+      "reveals": [
+        "RND",
+        "APP",
+        "CSS"
+      ],
+      "flow": "render"
+    },
+    {
+      "id": "out",
+      "title": "The whole skill",
+      "lede": "Read the code, verify the claim, measure it, draw it.",
+      "story": "Two things come out of one data file: the page you are looking at, and the same map written as a document. Because both are generated, they cannot drift apart.\n\nThe example maps close the loop -- they are what the pipeline produces, and one of them is this map of the tool itself. The guard scripts run against them, so the artifacts are also the fixtures.",
+      "reveals": [
+        "EXM",
+        "TWN"
+      ],
+      "flow": "gate"
+    }
+  ]
+}
