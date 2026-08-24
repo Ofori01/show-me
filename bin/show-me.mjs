@@ -46,6 +46,25 @@ for what you want instead:
 Docs: https://github.com/Ofori01/show-me`)
 }
 
+// Buildings at three heights on an isometric grid: the shape the tool draws,
+// where height is how much code a thing holds.
+const ART = String.raw`
+                ____
+               /   /|
+    ____      /___/ |     ____
+   /   /|     |   | |    /   /|
+  /___/ |     |   | |   /___/ |
+  |   | |     |   | |   |   | |
+  |   |/      |   |/    |   |/
+  '---'       '---'     '---'
+`
+
+// Colour only when a terminal is actually attached and NO_COLOR is unset, so
+// piping the output somewhere never fills it with escape codes.
+const tty = process.stdout.isTTY && !process.env.NO_COLOR
+const dim = (text) => (tty ? `\x1b[2m${text}\x1b[0m` : text)
+const bold = (text) => (tty ? `\x1b[1m${text}\x1b[0m` : text)
+
 function install(args) {
   const here_ = args.includes('--here')
   const base = here_ ? resolve(process.cwd(), '.claude', 'skills') : join(homedir(), '.claude', 'skills')
@@ -54,9 +73,19 @@ function install(args) {
   mkdirSync(base, { recursive: true })
   // Overwrite in place so upgrading is the same command as installing.
   cpSync(skillSource, target, { recursive: true })
-  console.log(`${existed ? 'Updated' : 'Installed'} the skill at ${target}`)
-  console.log(`\nAsk your agent for what you want, for example:\n  "Show me how authentication works in this repo."`)
-  if (!here_) console.log(`\nFor one project only, run it again with --here inside that project.`)
+
+  console.log(dim(ART))
+  console.log(`  ${bold('Show me')} ${dim(version)} — ${existed ? 'updated' : 'installed'}`)
+  console.log(`  ${dim(target)}\n`)
+  console.log(`  Point it at a codebase and it draws one: buildings sized from the`)
+  console.log(`  real source, connections traced through actual call paths, and every`)
+  console.log(`  claim citing a file, a line, and the text found there.\n`)
+  console.log(`  ${bold('Try it.')} Ask your agent:\n`)
+  console.log(`    ${dim('"Show me how authentication works in this repo."')}`)
+  console.log(`    ${dim('"Map this service end to end and explain it to someone new."')}\n`)
+  console.log(`  ${dim(here_ ? 'Installed for this project only.'
+    : 'Available in every project. Use --here to scope it to one.')}`)
+  console.log(`  ${dim('Docs and a live demo: https://github.com/Ofori01/show-me')}\n`)
 }
 
 const [command, ...rest] = process.argv.slice(2)

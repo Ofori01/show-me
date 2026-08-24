@@ -38,6 +38,11 @@ npx @ofori_01/show-me install          # for every project
 npx @ofori_01/show-me install --here   # for this one only
 ```
 
+Run that from anywhere except a clone of this repository. Inside one, npx sees a
+local package of the same name and looks for a binary that was never built,
+which fails with `show-me: command not found`. From a checkout, use
+`node bin/show-me.mjs install` instead.
+
 Then ask for what you want:
 
 > Show me how authentication works in this repo.
