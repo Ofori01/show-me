@@ -1,0 +1,54 @@
+name: checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # No dependencies to install: the skill is plain Node.
+      - name: The citation gate rejects a lie
+        run: node skills/show-me/scripts/self-test.mjs --repo .
+
+      - name: Connections never cross a building
+        run: node skills/show-me/scripts/layout-test.mjs --repo .
+
+      - name: Every citation in the shipped map still resolves
+        run: node skills/show-me/scripts/validate.mjs skills/show-me/examples/show-me.system-map.json --repo .
+
+      # The demo, the text twin and the README animation are generated, so a
+      # change to the map or the renderer must be rebuilt. Regenerating and
+      # diffing catches the commit that edits one and forgets the others.
+      - name: Generated files are up to date
+        run: |
+          set -euo pipefail
+          MAP=skills/show-me/examples/show-me.system-map.json
+          node skills/show-me/scripts/render.mjs  "$MAP" --repo . --out /tmp/index.html --standalone
+          node skills/show-me/scripts/twin.mjs    "$MAP" --repo . --out /tmp/SYSTEM.md
+          node skills/show-me/scripts/preview.mjs "$MAP" --repo . --flow render --out /tmp/flow.svg
+          fail=0
+          for pair in "docs/index.html:/tmp/index.html" "SYSTEM.md:/tmp/SYSTEM.md" "media/flow.svg:/tmp/flow.svg"; do
+            committed="${pair%%:*}"; fresh="${pair##*:}"
+            if ! diff -q "$committed" "$fresh" >/dev/null; then
+              echo "::error file=$committed::$committed is stale. Rebuild it and commit the result."
+              diff -u "$committed" "$fresh" | head -20 || true
+              fail=1
+            fi
+          done
+          exit $fail
+
+      - name: The CLI runs
+        run: |
+          node bin/show-me.mjs --version
+          node bin/show-me.mjs help > /dev/null
+          HOME=$(mktemp -d) node bin/show-me.mjs install

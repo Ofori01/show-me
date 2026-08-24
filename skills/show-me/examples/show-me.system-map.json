@@ -409,6 +409,31 @@
         }
       ],
       "confidence": "verified"
+    },
+    {
+      "id": "PRV",
+      "label": "The flow preview",
+      "short": "FLOW PREVIEW",
+      "group": "out",
+      "kind": "service",
+      "files": [
+        "skills/show-me/scripts/preview.mjs"
+      ],
+      "whatItDoes": "Makes a small moving picture of one traced path, for a README or a message. A still image cannot show what this tool is for. The interesting part is a payload walking a real route, so the preview moves.",
+      "howItsBuilt": "Runs the same placement the page uses, frames only the structures the chosen flow touches, and emits an animated SVG. Each hop gets a lit copy of its route and a token timed to arrive in turn. Vector rather than a recording, so it needs no browser to capture and cannot drift from the map.",
+      "citations": [
+        {
+          "file": "skills/show-me/scripts/preview.mjs",
+          "line": 34,
+          "evidence": "export async function preview(map, repoRoot, flowId, { step = 1200 } = {}) {"
+        },
+        {
+          "file": "skills/show-me/scripts/preview.mjs",
+          "line": 53,
+          "evidence": "const travel = round((step * 0.62) / cycle)"
+        }
+      ],
+      "confidence": "verified"
     }
   ],
   "edges": [
@@ -664,6 +689,52 @@
         "line": 19,
         "evidence": "import { massOf } from './lib/geometry.mjs'"
       }
+    },
+    {
+      "from": "PRV",
+      "to": "VAL",
+      "kind": "call",
+      "label": "gate first",
+      "confidence": "verified",
+      "citation": {
+        "file": "skills/show-me/scripts/preview.mjs",
+        "line": 18,
+        "evidence": "import { validateMap, resolveNodeFiles } from './validate.mjs'"
+      }
+    },
+    {
+      "from": "PRV",
+      "to": "LAY",
+      "kind": "call",
+      "label": "same placement",
+      "confidence": "verified",
+      "citation": {
+        "file": "skills/show-me/scripts/preview.mjs",
+        "line": 19,
+        "evidence": "import { layout } from './lib/layout.mjs'"
+      }
+    },
+    {
+      "from": "PRV",
+      "to": "GEO",
+      "kind": "call",
+      "confidence": "verified",
+      "citation": {
+        "file": "skills/show-me/scripts/preview.mjs",
+        "line": 20,
+        "evidence": "import { buildMesh, project } from './lib/geometry.mjs'"
+      }
+    },
+    {
+      "from": "PRV",
+      "to": "SVG",
+      "kind": "import",
+      "confidence": "verified",
+      "citation": {
+        "file": "skills/show-me/scripts/preview.mjs",
+        "line": 21,
+        "evidence": "import { tagText, DEFAULT_SHAPE, escapeHtml as esc } from './lib/svg.mjs'"
+      }
     }
   ],
   "flows": [
@@ -884,10 +955,11 @@
       "id": "out",
       "title": "The whole skill",
       "lede": "Read the code, verify the claim, measure it, draw it.",
-      "story": "Two things come out of one data file: the page you are looking at, and the same map written as a document. Because both are generated, they cannot drift apart.\n\nThe example maps close the loop -- they are what the pipeline produces, and one of them is this map of the tool itself. The guard scripts run against them, so the artifacts are also the fixtures.",
+      "story": "Three things come out of one data file. The page you are looking at, the same map written as a document, and a short animation of one path for a README. All generated, so none can drift from the others.\n\nThe example maps close the loop: they are what the pipeline produces, and one of them is this map of the tool itself. The guard scripts run against them, so the artifacts are also the fixtures.",
       "reveals": [
         "EXM",
-        "TWN"
+        "TWN",
+        "PRV"
       ],
       "flow": "gate"
     }

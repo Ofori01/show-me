@@ -6,10 +6,10 @@
 |---|---|
 | Repository | `show-me` |
 | Revision | `main` @ `af7d5f27` |
-| Structures | 16 in 6 districts |
-| Connections | 22 |
-| Measured | 16 source files, 5,345 lines |
-| Scope coverage | 16/16 files claimed |
+| Structures | 17 in 6 districts |
+| Connections | 26 |
+| Measured | 17 source files, 5,591 lines |
+| Scope coverage | 17/17 files claimed |
 | Chapters | 6 |
 | Traced flows | 3 |
 
@@ -92,11 +92,11 @@ The page you are reading is that output.
 
 *Read the code, verify the claim, measure it, draw it.*
 
-Two things come out of one data file: the page you are looking at, and the same map written as a document. Because both are generated, they cannot drift apart.
+Three things come out of one data file. The page you are looking at, the same map written as a document, and a short animation of one path for a README. All generated, so none can drift from the others.
 
-The example maps close the loop -- they are what the pipeline produces, and one of them is this map of the tool itself. The guard scripts run against them, so the artifacts are also the fixtures.
+The example maps close the loop: they are what the pipeline produces, and one of them is this map of the tool itself. The guard scripts run against them, so the artifacts are also the fixtures.
 
-**Introduces.** [The example maps](#the-example-maps-exm), [The text twin](#the-text-twin-twn)
+**Introduces.** [The example maps](#the-example-maps-exm), [The text twin](#the-text-twin-twn), [The flow preview](#the-flow-preview-prv)
 
 **Flow shown.** Rejecting a fabricated map — A real map is corrupted eleven ways and the gate must catch every one of them.
 
@@ -115,7 +115,7 @@ The example maps close the loop -- they are what the pipeline produces, and one 
 
 | | Structure | Kind | Files | Lines | Depended on by |
 |---|---|---|---|---|---|
-| `VAL` | [The citation gate](#the-citation-gate-val) | entry point | 1 | 578 | 4 |
+| `VAL` | [The citation gate](#the-citation-gate-val) | entry point | 1 | 578 | 5 |
 | `GT` | [The gate self-test](#the-gate-self-test-gt) | entry point | 1 | 193 | 0 |
 
 ### MEASURING
@@ -123,21 +123,21 @@ The example maps close the loop -- they are what the pipeline produces, and one 
 | | Structure | Kind | Files | Lines | Depended on by |
 |---|---|---|---|---|---|
 | `MET` | [Measuring](#measuring-met) | service | 1 | 213 | 2 |
-| `GEO` | [Projection and mass](#projection-and-mass-geo) | service | 1 | 159 | 5 |
+| `GEO` | [Projection and mass](#projection-and-mass-geo) | service | 1 | 159 | 6 |
 
 ### PLACING AND DRAWING
 
 | | Structure | Kind | Files | Lines | Depended on by |
 |---|---|---|---|---|---|
-| `LAY` | [Placement and routing](#placement-and-routing-lay) | service | 1 | 375 | 2 |
-| `SVG` | [The scene](#the-scene-svg) | service | 1 | 210 | 1 |
+| `LAY` | [Placement and routing](#placement-and-routing-lay) | service | 1 | 375 | 3 |
+| `SVG` | [The scene](#the-scene-svg) | service | 1 | 210 | 2 |
 | `LT` | [The layout invariants](#the-layout-invariants-lt) | entry point | 1 | 143 | 0 |
 
 ### THE PAGE
 
 | | Structure | Kind | Files | Lines | Depended on by |
 |---|---|---|---|---|---|
-| `RND` | [The assembler](#the-assembler-rnd) | entry point | 1 | 312 | 1 |
+| `RND` | [The assembler](#the-assembler-rnd) | entry point | 1 | 315 | 1 |
 | `APP` | [The interaction layer](#the-interaction-layer-app) | client | 1 | 792 | 1 |
 | `CSS` | [The theme](#the-theme-css) | types and constants | 1 | 523 | 1 |
 
@@ -145,8 +145,9 @@ The example maps close the loop -- they are what the pipeline produces, and one 
 
 | | Structure | Kind | Files | Lines | Depended on by |
 |---|---|---|---|---|---|
-| `EXM` | [The example maps](#the-example-maps-exm) | store | 1 | 895 | 2 |
+| `EXM` | [The example maps](#the-example-maps-exm) | store | 1 | 967 | 2 |
 | `TWN` | [The text twin](#the-text-twin-twn) | service | 1 | 233 | 0 |
+| `PRV` | [The flow preview](#the-flow-preview-prv) | service | 1 | 171 | 0 |
 
 ## Structures in detail
 
@@ -237,6 +238,7 @@ The reason a map can be trusted. It opens every cited file and proves the quoted
 - ← **The assembler** calls this
 - ← **The gate self-test** calls this
 - ← **The text twin** calls this
+- ← **The flow preview** calls this
 
 **Evidence.**
 - `skills/show-me/scripts/validate.mjs:55` — `if (!window.includes(evidence)) {`
@@ -293,6 +295,7 @@ Turns measurements into shapes. It decides how wide and how tall a structure is 
 - ← **The scene** calls this
 - ← **The visual language** imports types from this
 - ← **The text twin** imports types from this
+- ← **The flow preview** calls this
 
 **Evidence.**
 - `skills/show-me/scripts/lib/geometry.mjs:32` — `export function massOf({ fileCount, loc }) {`
@@ -312,6 +315,7 @@ Decides where everything sits. Each group becomes a raised band of its own. Ever
 - calls **Projection and mass**<br>`skills/show-me/scripts/lib/layout.mjs:16` — `import { massOf, project } from './geometry.mjs'`
 - ← **The assembler** calls this
 - ← **The layout invariants** calls this
+- ← **The flow preview** calls this
 
 **Evidence.**
 - `skills/show-me/scripts/lib/layout.mjs:16` — `import { massOf, project } from './geometry.mjs'`
@@ -329,6 +333,7 @@ Draws the field: the ground, the raised district platforms, the connections, the
 **Connections.**
 - calls **Projection and mass**<br>`skills/show-me/scripts/lib/svg.mjs:4` — `import { buildMesh, groundGrid, project } from './geometry.mjs'`
 - ← **The assembler** calls this
+- ← **The flow preview** imports types from this
 
 **Evidence.**
 - `skills/show-me/scripts/lib/svg.mjs:4` — `import { buildMesh, groundGrid, project } from './geometry.mjs'`
@@ -337,7 +342,7 @@ Draws the field: the ground, the raised district platforms, the connections, the
 
 ### The assembler `RND`
 
-entry point · 1 files · 312 lines
+entry point · 1 files · 315 lines
 
 Puts the page together. It refuses to run on a map that has not passed the gate. Then it measures, places, draws, and folds everything into one file that needs no server and no build step.
 
@@ -413,7 +418,7 @@ How the page looks in either colour scheme, and the panel layout around the map.
 
 ### The example maps `EXM`
 
-store · 1 files · 895 lines
+store · 1 files · 967 lines
 
 Three finished maps, which double as the fixtures both guard scripts run against. One of them is this map: the skill described by itself.
 
@@ -448,6 +453,26 @@ Writes the same map out as a document instead of a picture. The picture is bette
 - `skills/show-me/scripts/twin.mjs:243` — `writeFileSync(resolve(flags.get('out')), text, 'utf8')`
 
 **Files.** `skills/show-me/scripts/twin.mjs`
+
+### The flow preview `PRV`
+
+service · 1 files · 171 lines
+
+Makes a small moving picture of one traced path, for a README or a message. A still image cannot show what this tool is for. The interesting part is a payload walking a real route, so the preview moves.
+
+**How it's built.** Runs the same placement the page uses, frames only the structures the chosen flow touches, and emits an animated SVG. Each hop gets a lit copy of its route and a token timed to arrive in turn. Vector rather than a recording, so it needs no browser to capture and cannot drift from the map.
+
+**Connections.**
+- calls **The citation gate** (gate first)<br>`skills/show-me/scripts/preview.mjs:18` — `import { validateMap, resolveNodeFiles } from './validate.mjs'`
+- calls **Placement and routing** (same placement)<br>`skills/show-me/scripts/preview.mjs:19` — `import { layout } from './lib/layout.mjs'`
+- calls **Projection and mass**<br>`skills/show-me/scripts/preview.mjs:20` — `import { buildMesh, project } from './lib/geometry.mjs'`
+- imports types from **The scene**<br>`skills/show-me/scripts/preview.mjs:21` — `import { tagText, DEFAULT_SHAPE, escapeHtml as esc } from './lib/svg.mjs'`
+
+**Evidence.**
+- `skills/show-me/scripts/preview.mjs:34` — `export async function preview(map, repoRoot, flowId, { step = 1200 } = {}) {`
+- `skills/show-me/scripts/preview.mjs:53` — `const travel = round((step * 0.62) / cycle)`
+
+**Files.** `skills/show-me/scripts/preview.mjs`
 
 ## Traced flows
 
