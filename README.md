@@ -34,8 +34,8 @@ handed to a pattern.
 ## Install
 
 ```bash
-npx @ofori01/show-me install          # for every project
-npx @ofori01/show-me install --here   # for this one only
+npx @ofori_01/show-me install          # for every project
+npx @ofori_01/show-me install --here   # for this one only
 ```
 
 Then ask for what you want:

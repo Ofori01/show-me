@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 // Show me: install the skill, or run its scripts directly.
 //
-//   npx @ofori01/show-me install            put the skill in ~/.claude/skills
-//   npx @ofori01/show-me install --here     put it in ./.claude/skills
-//   npx @ofori01/show-me validate <map> --repo <dir>
-//   npx @ofori01/show-me render   <map> --repo <dir> --out <file.html> [--standalone]
-//   npx @ofori01/show-me twin     <map> --repo <dir> --out SYSTEM.md
-//   npx @ofori01/show-me preview  <map> --repo <dir> --out flow.svg [--flow <id>]
+//   npx @ofori_01/show-me install            put the skill in ~/.claude/skills
+//   npx @ofori_01/show-me install --here     put it in ./.claude/skills
+//   npx @ofori_01/show-me validate <map> --repo <dir>
+//   npx @ofori_01/show-me render   <map> --repo <dir> --out <file.html> [--standalone]
+//   npx @ofori_01/show-me twin     <map> --repo <dir> --out SYSTEM.md
+//   npx @ofori_01/show-me preview  <map> --repo <dir> --out flow.svg [--flow <id>]
 
 import { cpSync, existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'

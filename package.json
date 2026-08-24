@@ -1,5 +1,5 @@
 {
-  "name": "@ofori01/show-me",
+  "name": "@ofori_01/show-me",
   "version": "0.1.0",
   "description": "Turn a codebase into an isometric map you can check. An agent skill where every claim cites a file, a line, and the text found there.",
   "keywords": [
