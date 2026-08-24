@@ -2,13 +2,13 @@
 
 Point it at a codebase. Get back a map you can check.
 
-[![A traced flow playing across the map of Show me](media/flow.svg)](https://ofori01.github.io/show-me/)
+[![A traced flow playing across the map of Show me](https://raw.githubusercontent.com/Ofori01/show-me/main/media/flow.svg)](https://ofori01.github.io/show-me/)
 
 ### [→ Open the live demo](https://ofori01.github.io/show-me/)
 
 That is Show me, mapped by Show me — real geometry, not a mock-up. Walk the
 chapters, click a building to read what it does, watch a payload travel a real
-path. The same map as text is [SYSTEM.md](SYSTEM.md).
+path. The same map as text is [SYSTEM.md](https://github.com/Ofori01/show-me/blob/main/SYSTEM.md).
 
 ## What it is
 
@@ -34,17 +34,17 @@ handed to a pattern.
 ## Install
 
 ```bash
-git clone https://github.com/Ofori01/show-me.git
-cp -R show-me/skills/show-me ~/.claude/skills/        # everywhere
-# or just one project:
-cp -R show-me/skills/show-me /path/to/repo/.claude/skills/
+npx @ofori01/show-me install          # for every project
+npx @ofori01/show-me install --here   # for this one only
 ```
 
 Then ask for what you want:
 
 > Show me how authentication works in this repo.
 
-Node 18 or newer. No dependencies, no build step.
+Run the same command again to upgrade. Node 18 or newer, no dependencies, no
+build step. If you would rather not use npm, copy `skills/show-me` into
+`~/.claude/skills/` yourself — that is all `install` does.
 
 ## Run it on itself
 

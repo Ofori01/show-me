@@ -1,0 +1,45 @@
+{
+  "name": "@ofori01/show-me",
+  "version": "0.1.0",
+  "description": "Turn a codebase into an isometric map you can check. An agent skill where every claim cites a file, a line, and the text found there.",
+  "keywords": [
+    "agent-skill",
+    "claude",
+    "claude-code",
+    "architecture",
+    "documentation",
+    "codebase-visualization",
+    "isometric",
+    "diagram",
+    "onboarding"
+  ],
+  "homepage": "https://ofori01.github.io/show-me/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ofori01/show-me.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Ofori01/show-me/issues"
+  },
+  "license": "MIT",
+  "author": "Amoah Ofori Darkwah (https://github.com/Ofori01)",
+  "type": "module",
+  "bin": {
+    "show-me": "bin/show-me.mjs"
+  },
+  "files": [
+    "bin",
+    "skills",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node skills/show-me/scripts/self-test.mjs --repo . && node skills/show-me/scripts/layout-test.mjs --repo ."
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
