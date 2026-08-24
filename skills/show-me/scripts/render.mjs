@@ -293,6 +293,9 @@ export function standalone(fragment, map) {
   const title = titleMatch ? titleMatch[1] : map.meta.title
   const description = `${map.meta.subtitle || map.meta.title} - ${map.nodes.length} structures, `
     + `${map.edges.length} cited connections, measured from source.`
+  // The fragment carries its own <title> for hosts that scan the body for one.
+  // A real document has it in the head, and two is invalid.
+  const body = fragment.replace(/^<title>[^<]*<\/title>\n?/, '')
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -303,7 +306,7 @@ export function standalone(fragment, map) {
 <title>${esc(title)}</title>
 </head>
 <body>
-${fragment}</body>
+${body}</body>
 </html>
 `
 }
