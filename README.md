@@ -38,7 +38,6 @@ npx @ofori_01/show-me install          # for every project
 npx @ofori_01/show-me install --here   # for this one only
 ```
 
-
 Then ask for what you want:
 
 > Show me how authentication works in this repo.
