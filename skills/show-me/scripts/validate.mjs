@@ -24,8 +24,13 @@ const NODE_TARGET_MAX = 24
 export function validateMap(map, repoRoot, { evidenceWindow = 4 } = {}) {
   const errors = []
   const warnings = []
+  const lints = []
   const err = (where, message) => errors.push(`${where}: ${message}`)
   const warn = (where, message) => warnings.push(`${where}: ${message}`)
+  // Craft notes are held apart from structural warnings. Mixing "this prose is
+  // long" into the same list as "two nodes claim the same file" trains an author
+  // to skim both, and the second one matters.
+  const lint = (where, message) => lints.push(`${where}: ${message}`)
 
   const fileCache = new Map()
   const readLines = (file) => {
@@ -137,7 +142,7 @@ export function validateMap(map, repoRoot, { evidenceWindow = 4 } = {}) {
     // The field carries a readable name under every building, and a label too
     // long to fit gets truncated into something that no longer means anything.
     if (needsShort(node)) {
-      warn(where, `label "${node.label}" is too long for the map tag; give it a "short" of <= 16 chars`)
+      lint(where, `label "${node.label}" is too long for the map tag; give it a "short" of <= 16 chars`)
     }
     for (const field of ['whatItDoes', 'howItsBuilt']) {
       if (typeof node[field] !== 'string' || node[field].trim().length < 20) {
@@ -230,17 +235,17 @@ export function validateMap(map, repoRoot, { evidenceWindow = 4 } = {}) {
       .map((match) => match[0])
       .filter((word) => !PROPER_NOUNS.has(word.toLowerCase()))
     if (found.length > 0) {
-      warn(where, `${what} names "${found[0]}" in code rather than in words — put identifiers in howItsBuilt`)
+      lint(where, `${what} names "${found[0]}" in code rather than in words — put identifiers in howItsBuilt`)
     }
     const lower = text.toLowerCase()
     for (const [term, plainer] of PLAINER) {
       if (new RegExp(`\\b${term}\\b`).test(lower)) {
-        warn(where, `${what} uses "${term}"; plainer: ${plainer}`)
+        lint(where, `${what} uses "${term}"; plainer: ${plainer}`)
       }
     }
     for (const sentence of text.split(/(?<=[.!?])\s+/)) {
       const words = sentence.trim().split(/\s+/).filter(Boolean).length
-      if (words > 30) warn(where, `${what} has a ${words}-word sentence; split it (aim under 25)`)
+      if (words > 30) lint(where, `${what} has a ${words}-word sentence; split it (aim under 25)`)
     }
   }
 
@@ -289,6 +294,8 @@ export function validateMap(map, repoRoot, { evidenceWindow = 4 } = {}) {
         }
       }
       // A chapter's flow may only touch what the reader has already been shown.
+      // The useful message is not "this is wrong" but "here is where it would
+      // work" -- otherwise the author moves the flow one chapter at a time.
       if (chapter.flow !== undefined) {
         const flow = flows.find((entry) => entry.id === chapter.flow)
         if (!flow) err(where, `flow "${chapter.flow}" is not declared in flows`)
@@ -296,14 +303,28 @@ export function validateMap(map, repoRoot, { evidenceWindow = 4 } = {}) {
           const availableAt = new Set(
             chapters.slice(0, index + 1).flatMap((entry) => entry.reveals ?? []),
           )
-          const unseen = [...new Set(flow.steps.flatMap((step) => [step.from, step.to]))]
-            .filter((id) => !availableAt.has(id))
+          const touched = [...new Set(flow.steps.flatMap((step) => [step.from, step.to]))]
+          const unseen = touched.filter((id) => !availableAt.has(id))
           if (unseen.length > 0) {
-            err(where, `flow "${chapter.flow}" touches ${unseen.join(', ')}, not yet revealed here`)
+            const eligible = earliestChapter(touched, chapters)
+            err(where, `flow "${chapter.flow}" touches ${unseen.join(', ')}, not revealed until later`
+              + (eligible === -1
+                ? ' — no chapter reveals all of them, so this flow cannot be attached anywhere'
+                : ` — it first becomes eligible at chapter ${eligible + 1} ("${chapters[eligible].title}")`))
           }
         }
       }
     })
+    // Where each unattached flow could go, so attaching one is a lookup.
+    for (const flow of flows) {
+      if (chapters.some((chapter) => chapter.flow === flow.id)) continue
+      const touched = [...new Set(flow.steps.flatMap((step) => [step.from, step.to]))]
+      const eligible = earliestChapter(touched, chapters)
+      warn('chapters', eligible === -1
+        ? `flow "${flow.id}" is not attached to a chapter and no chapter reveals everything it touches`
+        : `flow "${flow.id}" is not attached to a chapter; earliest eligible is chapter ${eligible + 1} ("${chapters[eligible].title}")`)
+    }
+
     const unrevealed = [...nodeIds].filter((id) => !revealedBy.has(id))
     if (unrevealed.length > 0) {
       err('chapters', `never revealed by any chapter: ${unrevealed.join(', ')}`)
@@ -353,7 +374,7 @@ export function validateMap(map, repoRoot, { evidenceWindow = 4 } = {}) {
 
   // Glob resolution and measurement happen in `resolveNodeFiles`, which callers
   // run separately so a structural failure short-circuits before any file I/O.
-  return { errors, warnings, nodeIds, groupIds }
+  return { errors, warnings, lints, nodeIds, groupIds }
 }
 
 /**
@@ -368,6 +389,16 @@ export function validateMap(map, repoRoot, { evidenceWindow = 4 } = {}) {
  * A handful of unclaimed files is ordinary: fixtures, barrels, generated code.
  * A cluster of them with a common prefix is a part of the system you missed.
  */
+/** First chapter index by which every one of these structures is revealed. */
+function earliestChapter(ids, chapters) {
+  const seen = new Set()
+  for (const [index, chapter] of chapters.entries()) {
+    for (const id of chapter.reveals ?? []) seen.add(id)
+    if (ids.every((id) => seen.has(id))) return index
+  }
+  return -1
+}
+
 export async function scopeCoverage(map, repoRoot) {
   const globs = map.meta?.scopeGlobs
   if (!Array.isArray(globs) || globs.length === 0) return null
@@ -503,7 +534,8 @@ if (isMain) {
   const args = process.argv.slice(2)
   const mapPath = args.find((a) => !a.startsWith('--'))
   if (!mapPath) {
-    console.error('usage: node scripts/validate.mjs <map.json> [--repo <root>] [--window 4] [--relocate] [--globs-only]')
+    console.error('usage: node scripts/validate.mjs <map.json> [--repo <root>] [--window 4]')
+    console.error('       [--relocate] [--globs-only] [--suggest-unclaimed]')
     process.exit(2)
   }
   const repoFlag = args.indexOf('--repo')
@@ -562,6 +594,7 @@ if (isMain) {
 
   const result = validateMap(map, repoRoot, { evidenceWindow })
   let { errors, warnings } = result
+  const { lints } = result
   if (errors.length === 0) {
     const globs = await resolveNodeFiles(map, repoRoot)
     errors = errors.concat(globs.errors)
@@ -601,7 +634,36 @@ if (isMain) {
     warnings.push('meta.scopeGlobs is absent, so coverage cannot be checked -- nothing verifies that the map covers what it claims to')
   }
 
+  if (args.includes('--suggest-unclaimed') && coverage && coverage.unclaimed.length > 0) {
+    // Grouping is the author's judgment; the shape of a glob is not. These are
+    // candidate patterns for files nothing claimed, with no opinion about what
+    // any of them mean or which belong together.
+    console.log('candidate globs for the unclaimed files:')
+    for (const [dir, count] of coverage.clusters) {
+      const inDir = coverage.unclaimed.filter((file) => file.startsWith(`${dir}/`))
+      const extensions = [...new Set(inDir.map((file) => file.slice(file.lastIndexOf('.'))))]
+      const suffix = extensions.length === 1 ? `*${extensions[0]}` : '*'
+      console.log(`  ${String(count).padStart(4)}  "${dir}/${suffix}"`)
+      // A shared prefix inside the directory is usually one thing.
+      const names = inDir.map((file) => file.slice(dir.length + 1))
+      const prefix = names.reduce((acc, name) => {
+        let i = 0
+        while (i < acc.length && i < name.length && acc[i] === name[i]) i += 1
+        return acc.slice(0, i)
+      }, names[0] ?? '')
+      if (prefix.length >= 4 && names.length > 1) {
+        console.log(`        or narrower: "${dir}/${prefix}*"`)
+      }
+    }
+    console.log('')
+  }
+
   for (const warning of warnings) console.log(`  warn  ${warning}`)
+  if (lints.length > 0) {
+    console.log(`\ncraft notes (${lints.length}) — nothing here blocks a render:`)
+    for (const note of lints) console.log(`  lint  ${note}`)
+    console.log('')
+  }
   for (const error of errors) console.error(`  ERROR ${error}`)
   if (errors.length > 0) {
     console.error(`\n${errors.length} error(s) — map rejected. Fix the analysis, not the evidence strings.`)

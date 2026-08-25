@@ -64,7 +64,7 @@
       "citations": [
         {
           "file": "SKILL.md",
-          "line": 235,
+          "line": 276,
           "evidence": "node scripts/validate.mjs <map>.json --repo <worktree>"
         }
       ],
@@ -144,12 +144,12 @@
       "citations": [
         {
           "file": "scripts/validate.mjs",
-          "line": 55,
+          "line": 62,
           "evidence": "if (!window.includes(evidence)) {"
         },
         {
           "file": "scripts/validate.mjs",
-          "line": 371,
+          "line": 402,
           "evidence": "export async function scopeCoverage(map, repoRoot) {"
         }
       ],
@@ -434,6 +434,59 @@
         }
       ],
       "confidence": "verified"
+    },
+    {
+      "id": "SCA",
+      "label": "The scaffold",
+      "short": "SCAFFOLD",
+      "group": "measure",
+      "kind": "entry",
+      "files": [
+        "scripts/scaffold.mjs"
+      ],
+      "whatItDoes": "Does the clerical half of starting a map. It reads which revision you are on, counts what is there, finds the manifests, and writes one empty shell per directory. It decides nothing about what anything is.",
+      "howItsBuilt": "Rolls the file list up by directory with line counts, reports likely doorways by filename, and emits a skeleton whose every prose field is a placeholder the gate rejects. That refusal is the point: a scaffold cannot be mistaken for a finished map.",
+      "citations": [
+        {
+          "file": "scripts/scaffold.mjs",
+          "line": 25,
+          "evidence": "const BUDGET = {"
+        },
+        {
+          "file": "scripts/scaffold.mjs",
+          "line": 54,
+          "evidence": "export function scaffold(repoRoot, { branch = null, scope = [], mode = 'system' } = {}) {"
+        }
+      ],
+      "confidence": "verified"
+    },
+    {
+      "id": "CIT",
+      "label": "The citation helper",
+      "short": "CITE",
+      "group": "gate",
+      "kind": "entry",
+      "files": [
+        "scripts/cite.mjs"
+      ],
+      "whatItDoes": "Turns a search result into a citation. Copying a path, a line number and a quote by hand dozens of times is the grindiest part of writing a map, and it is the part most likely to go wrong.",
+      "howItsBuilt": "Reads ripgrep output from a pipe or an argument, handles both of the shapes ripgrep emits, and checks each quote really sits at the line named before printing it. A bad paste is caught here rather than at the gate.",
+      "citations": [
+        {
+          "file": "scripts/cite.mjs",
+          "line": 24,
+          "evidence": "export function parseHit(line, fallbackFile = null) {"
+        },
+        {
+          "file": "scripts/cite.mjs",
+          "line": 46,
+          "evidence": "export function verify(citation, repoRoot, window = 4) {"
+        }
+      ],
+      "confidence": "verified",
+      "concerns": [
+        "It re-implements the gate's window check instead of importing it, so the two could drift apart."
+      ]
     }
   ],
   "edges": [
@@ -443,7 +496,7 @@
       "kind": "import",
       "citation": {
         "file": "SKILL.md",
-        "line": 57,
+        "line": 62,
         "evidence": "Read `references/schema.md` before writing any JSON"
       },
       "confidence": "verified",
@@ -455,7 +508,7 @@
       "kind": "import",
       "citation": {
         "file": "SKILL.md",
-        "line": 58,
+        "line": 63,
         "evidence": "Read `references/extraction.md` for how to find structure by reading"
       },
       "confidence": "verified",
@@ -467,7 +520,7 @@
       "kind": "import",
       "citation": {
         "file": "SKILL.md",
-        "line": 60,
+        "line": 65,
         "evidence": "Read `references/visual-language.md` for what each shape and channel means"
       },
       "confidence": "verified"
@@ -478,7 +531,7 @@
       "kind": "call",
       "citation": {
         "file": "SKILL.md",
-        "line": 235,
+        "line": 276,
         "evidence": "node scripts/validate.mjs <map>.json --repo <worktree>"
       },
       "confidence": "verified",
@@ -490,7 +543,7 @@
       "kind": "call",
       "citation": {
         "file": "SKILL.md",
-        "line": 238,
+        "line": 279,
         "evidence": "node scripts/render.mjs   <map>.json --repo <worktree> --out <out>.html"
       },
       "confidence": "verified",
@@ -502,7 +555,7 @@
       "kind": "call",
       "citation": {
         "file": "scripts/validate.mjs",
-        "line": 398,
+        "line": 429,
         "evidence": "const { expandGlobs, fileMetrics, discoverTestSiblings } = await import('./lib/metrics.mjs')"
       },
       "confidence": "verified",
@@ -735,6 +788,30 @@
         "line": 21,
         "evidence": "import { tagText, DEFAULT_SHAPE, escapeHtml as esc } from './lib/svg.mjs'"
       }
+    },
+    {
+      "from": "SCA",
+      "to": "MET",
+      "kind": "call",
+      "label": "count the files",
+      "confidence": "verified",
+      "citation": {
+        "file": "scripts/scaffold.mjs",
+        "line": 23,
+        "evidence": "import { expandGlobs, fileMetrics, TEST_PATTERN } from './lib/metrics.mjs'"
+      }
+    },
+    {
+      "from": "CIT",
+      "to": "VAL",
+      "kind": "import",
+      "label": "same check, copied",
+      "confidence": "inferred",
+      "citation": {
+        "file": "scripts/cite.mjs",
+        "line": 46,
+        "evidence": "export function verify(citation, repoRoot, window = 4) {"
+      }
     }
   ],
   "flows": [
@@ -751,7 +828,7 @@
           "note": "The pipeline hands the map to the assembler, which is the only step that produces a file anyone looks at.",
           "citation": {
             "file": "SKILL.md",
-            "line": 238,
+            "line": 279,
             "evidence": "node scripts/render.mjs   <map>.json --repo <worktree> --out <out>.html"
           }
         },
@@ -847,7 +924,7 @@
           "note": "Glob resolution is checked too, because a structure pointing at no files cannot be drawn or measured at all.",
           "citation": {
             "file": "scripts/validate.mjs",
-            "line": 398,
+            "line": 429,
             "evidence": "const { expandGlobs, fileMetrics, discoverTestSiblings } = await import('./lib/metrics.mjs')"
           }
         }
@@ -915,7 +992,8 @@
       "story": "The agent writes a map; the gate opens every file it cites and confirms the quoted line is really there. That is the whole trust model, and it is why someone who has not read the code can believe the picture.\n\nIts own tests mutate a good map into eleven specific lies and assert each is caught.",
       "reveals": [
         "VAL",
-        "GT"
+        "GT",
+        "CIT"
       ]
     },
     {
@@ -925,7 +1003,8 @@
       "story": "Metrics resolves the globs a structure claims and counts files and lines. Geometry turns those counts into shape: height is lines of code on a square-root scale, footprint is file count.\n\nThere is no field an author could use to make a building bigger than its code.",
       "reveals": [
         "MET",
-        "GEO"
+        "GEO",
+        "SCA"
       ]
     },
     {
@@ -962,6 +1041,14 @@
         "PRV"
       ],
       "flow": "gate"
+    },
+    {
+      "id": "proof",
+      "title": "The one thing that is proven",
+      "lede": "One claim is checked by a machine, not by a reader.",
+      "story": "Most of what a map claims is checked by a person reading it. One claim is checked by a machine, every time: no connection ever crosses a building. Watch it being proven over the finished field.",
+      "reveals": [],
+      "flow": "invariant"
     }
   ]
 }

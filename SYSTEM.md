@@ -6,11 +6,11 @@
 |---|---|
 | Repository | `show-me` |
 | Revision | `main` @ `af7d5f27` |
-| Structures | 17 in 6 districts |
-| Connections | 26 |
-| Measured | 17 source files, 5,591 lines |
-| Scope coverage | 17/17 files claimed |
-| Chapters | 6 |
+| Structures | 19 in 6 districts |
+| Connections | 28 |
+| Measured | 19 source files, 6,046 lines |
+| Scope coverage | 19/19 files claimed |
+| Chapters | 7 |
 | Traced flows | 3 |
 
 **[Open the interactive map](https://ofori01.github.io/show-me/)** — the same content, explorable.
@@ -54,7 +54,7 @@ The agent writes a map; the gate opens every file it cites and confirms the quot
 
 Its own tests mutate a good map into eleven specific lies and assert each is caught.
 
-**Introduces.** [The citation gate](#the-citation-gate-val), [The gate self-test](#the-gate-self-test-gt)
+**Introduces.** [The citation gate](#the-citation-gate-val), [The gate self-test](#the-gate-self-test-gt), [The citation helper](#the-citation-helper-cit)
 
 ### 3. Measured, never asserted
 
@@ -64,7 +64,7 @@ Metrics resolves the globs a structure claims and counts files and lines. Geomet
 
 There is no field an author could use to make a building bigger than its code.
 
-**Introduces.** [Measuring](#measuring-met), [Projection and mass](#projection-and-mass-geo)
+**Introduces.** [Measuring](#measuring-met), [Projection and mass](#projection-and-mass-geo), [The scaffold](#the-scaffold-sca)
 
 ### 4. Where everything goes
 
@@ -100,13 +100,23 @@ The example maps close the loop: they are what the pipeline produces, and one of
 
 **Flow shown.** Rejecting a fabricated map — A real map is corrupted eleven ways and the gate must catch every one of them.
 
+### 7. The one thing that is proven
+
+*One claim is checked by a machine, not by a reader.*
+
+Most of what a map claims is checked by a person reading it. One claim is checked by a machine, every time: no connection ever crosses a building. Watch it being proven over the finished field.
+
+**Introduces.** Nothing new — this is the whole system at once.
+
+**Flow shown.** Proving edges never cross — Every shipped map is re-laid-out and checked: no connection may enter a building footprint.
+
 ## Structures
 
 ### WHAT THE AGENT READS
 
 | | Structure | Kind | Files | Lines | Depended on by |
 |---|---|---|---|---|---|
-| `INS` | [The instructions](#the-instructions-ins) | types and constants | 1 | 239 | 0 |
+| `INS` | [The instructions](#the-instructions-ins) | types and constants | 1 | 284 | 0 |
 | `SCH` | [The contract](#the-contract-sch) | types and constants | 1 | 250 | 1 |
 | `EXT` | [How to read](#how-to-read-ext) | types and constants | 1 | 137 | 1 |
 | `VIS` | [The visual language](#the-visual-language-vis) | types and constants | 1 | 93 | 1 |
@@ -115,15 +125,17 @@ The example maps close the loop: they are what the pipeline produces, and one of
 
 | | Structure | Kind | Files | Lines | Depended on by |
 |---|---|---|---|---|---|
-| `VAL` | [The citation gate](#the-citation-gate-val) | entry point | 1 | 578 | 5 |
+| `VAL` | [The citation gate](#the-citation-gate-val) | entry point | 1 | 637 | 6 |
 | `GT` | [The gate self-test](#the-gate-self-test-gt) | entry point | 1 | 193 | 0 |
+| `CIT` | [The citation helper](#the-citation-helper-cit) | entry point | 1 | 102 | 0 |
 
 ### MEASURING
 
 | | Structure | Kind | Files | Lines | Depended on by |
 |---|---|---|---|---|---|
-| `MET` | [Measuring](#measuring-met) | service | 1 | 213 | 2 |
+| `MET` | [Measuring](#measuring-met) | service | 1 | 213 | 3 |
 | `GEO` | [Projection and mass](#projection-and-mass-geo) | service | 1 | 159 | 6 |
+| `SCA` | [The scaffold](#the-scaffold-sca) | entry point | 1 | 162 | 0 |
 
 ### PLACING AND DRAWING
 
@@ -145,7 +157,7 @@ The example maps close the loop: they are what the pipeline produces, and one of
 
 | | Structure | Kind | Files | Lines | Depended on by |
 |---|---|---|---|---|---|
-| `EXM` | [The example maps](#the-example-maps-exm) | store | 1 | 967 | 2 |
+| `EXM` | [The example maps](#the-example-maps-exm) | store | 1 | 1,054 | 2 |
 | `TWN` | [The text twin](#the-text-twin-twn) | service | 1 | 233 | 0 |
 | `PRV` | [The flow preview](#the-flow-preview-prv) | service | 1 | 171 | 0 |
 
@@ -153,21 +165,21 @@ The example maps close the loop: they are what the pipeline produces, and one of
 
 ### The instructions `INS`
 
-types and constants · 1 files · 239 lines
+types and constants · 1 files · 284 lines
 
 The whole method, written for an agent about to map something. It sets out the seven steps, the two rules that cannot be bent, and the division of labour that everything else follows.
 
 **How it's built.** A single Markdown file with YAML frontmatter naming the skill and describing when to reach for it. It states the pipeline as shell commands and delegates the detail to three reference documents rather than restating it.
 
 **Connections.**
-- imports types from **The contract** (the contract)<br>`SKILL.md:57` — `Read 'references/schema.md' before writing any JSON`
-- imports types from **How to read** (how to read)<br>`SKILL.md:58` — `Read 'references/extraction.md' for how to find structure by reading`
-- imports types from **The visual language**<br>`SKILL.md:60` — `Read 'references/visual-language.md' for what each shape and channel means`
-- calls **The citation gate** (step 5)<br>`SKILL.md:235` — `node scripts/validate.mjs <map>.json --repo <worktree>`
-- calls **The assembler** (step 6)<br>`SKILL.md:238` — `node scripts/render.mjs   <map>.json --repo <worktree> --out <out>.html`
+- imports types from **The contract** (the contract)<br>`SKILL.md:62` — `Read 'references/schema.md' before writing any JSON`
+- imports types from **How to read** (how to read)<br>`SKILL.md:63` — `Read 'references/extraction.md' for how to find structure by reading`
+- imports types from **The visual language**<br>`SKILL.md:65` — `Read 'references/visual-language.md' for what each shape and channel means`
+- calls **The citation gate** (step 5)<br>`SKILL.md:276` — `node scripts/validate.mjs <map>.json --repo <worktree>`
+- calls **The assembler** (step 6)<br>`SKILL.md:279` — `node scripts/render.mjs   <map>.json --repo <worktree> --out <out>.html`
 
 **Evidence.**
-- `SKILL.md:235` — `node scripts/validate.mjs <map>.json --repo <worktree>`
+- `SKILL.md:276` — `node scripts/validate.mjs <map>.json --repo <worktree>`
 
 **Files.** `SKILL.md`
 
@@ -223,7 +235,7 @@ What the picture means. Which shape says a thing runs versus stores versus buffe
 
 ### The citation gate `VAL`
 
-entry point · 1 files · 578 lines
+entry point · 1 files · 637 lines
 
 The reason a map can be trusted. It opens every cited file and proves the quoted text is really there, and it reports which files in the declared region no structure claims. Nothing renders until it passes.
 
@@ -233,16 +245,17 @@ The reason a map can be trusted. It opens every cited file and proves the quoted
 - Proves a cited line exists and says what was quoted, never that it was read correctly, so a misreading passes the gate.
 
 **Connections.**
-- calls **Measuring** (measure globs)<br>`scripts/validate.mjs:398` — `const { expandGlobs, fileMetrics, discoverTestSiblings } = await import('./lib/metrics.mjs')`
+- calls **Measuring** (measure globs)<br>`scripts/validate.mjs:429` — `const { expandGlobs, fileMetrics, discoverTestSiblings } = await import('./lib/metrics.mjs')`
 - ← **The instructions** calls this
 - ← **The assembler** calls this
 - ← **The gate self-test** calls this
 - ← **The text twin** calls this
 - ← **The flow preview** calls this
+- ← **The citation helper** imports types from this
 
 **Evidence.**
-- `scripts/validate.mjs:55` — `if (!window.includes(evidence)) {`
-- `scripts/validate.mjs:371` — `export async function scopeCoverage(map, repoRoot) {`
+- `scripts/validate.mjs:62` — `if (!window.includes(evidence)) {`
+- `scripts/validate.mjs:402` — `export async function scopeCoverage(map, repoRoot) {`
 
 **Files.** `scripts/validate.mjs`
 
@@ -274,6 +287,7 @@ Counts. How many files a structure holds and how many lines they run to, plus wh
 **Connections.**
 - ← **The citation gate** calls this
 - ← **How to read** imports types from this
+- ← **The scaffold** calls this
 
 **Evidence.**
 - `scripts/lib/metrics.mjs:96` — `export function expandGlobs(repoRoot, patterns) {`
@@ -418,7 +432,7 @@ How the page looks in either colour scheme, and the panel layout around the map.
 
 ### The example maps `EXM`
 
-store · 1 files · 967 lines
+store · 1 files · 1,054 lines
 
 Three finished maps, which double as the fixtures both guard scripts run against. One of them is this map: the skill described by itself.
 
@@ -474,6 +488,43 @@ Makes a small moving picture of one traced path, for a README or a message. A st
 
 **Files.** `scripts/preview.mjs`
 
+### The scaffold `SCA`
+
+entry point · 1 files · 162 lines
+
+Does the clerical half of starting a map. It reads which revision you are on, counts what is there, finds the manifests, and writes one empty shell per directory. It decides nothing about what anything is.
+
+**How it's built.** Rolls the file list up by directory with line counts, reports likely doorways by filename, and emits a skeleton whose every prose field is a placeholder the gate rejects. That refusal is the point: a scaffold cannot be mistaken for a finished map.
+
+**Connections.**
+- calls **Measuring** (count the files)<br>`scripts/scaffold.mjs:23` — `import { expandGlobs, fileMetrics, TEST_PATTERN } from './lib/metrics.mjs'`
+
+**Evidence.**
+- `scripts/scaffold.mjs:25` — `const BUDGET = {`
+- `scripts/scaffold.mjs:54` — `export function scaffold(repoRoot, { branch = null, scope = [], mode = 'system' } = {}) {`
+
+**Files.** `scripts/scaffold.mjs`
+
+### The citation helper `CIT`
+
+entry point · 1 files · 102 lines
+
+Turns a search result into a citation. Copying a path, a line number and a quote by hand dozens of times is the grindiest part of writing a map, and it is the part most likely to go wrong.
+
+**How it's built.** Reads ripgrep output from a pipe or an argument, handles both of the shapes ripgrep emits, and checks each quote really sits at the line named before printing it. A bad paste is caught here rather than at the gate.
+
+**Concerns.**
+- It re-implements the gate's window check instead of importing it, so the two could drift apart.
+
+**Connections.**
+- imports types from **The citation gate** (same check, copied) — *inferred*<br>`scripts/cite.mjs:46` — `export function verify(citation, repoRoot, window = 4) {`
+
+**Evidence.**
+- `scripts/cite.mjs:24` — `export function parseHit(line, fallbackFile = null) {`
+- `scripts/cite.mjs:46` — `export function verify(citation, repoRoot, window = 4) {`
+
+**Files.** `scripts/cite.mjs`
+
 ## Traced flows
 
 ### From map to page
@@ -486,7 +537,7 @@ A validated map becomes one self-contained HTML file: gated, measured, placed, d
 
 1. **The instructions → The assembler**
    The pipeline hands the map to the assembler, which is the only step that produces a file anyone looks at.
-   `SKILL.md:238` — `node scripts/render.mjs   <map>.json --repo <worktree> --out <out>.html`
+   `SKILL.md:279` — `node scripts/render.mjs   <map>.json --repo <worktree> --out <out>.html`
 2. **The assembler → The citation gate** *(side effect; the path does not advance)*
    The gate runs again first, so a map that fails verification cannot be rendered even by accident.
    `scripts/render.mjs:16` — `import { validateMap, resolveNodeFiles } from './validate.mjs'`
@@ -519,7 +570,7 @@ A real map is corrupted eleven ways and the gate must catch every one of them.
    `scripts/self-test.mjs:14` — `import { validateMap, resolveNodeFiles } from './validate.mjs'`
 3. **The citation gate → Measuring** *(side effect; the path does not advance)*
    Glob resolution is checked too, because a structure pointing at no files cannot be drawn or measured at all.
-   `scripts/validate.mjs:398` — `const { expandGlobs, fileMetrics, discoverTestSiblings } = await import('./lib/metrics.mjs')`
+   `scripts/validate.mjs:429` — `const { expandGlobs, fileMetrics, discoverTestSiblings } = await import('./lib/metrics.mjs')`
 
 ### Proving edges never cross
 
@@ -549,5 +600,6 @@ it can only fail to build.
 What the check does **not** cover: it proves a cited line exists and says
 what is quoted, not that it was read correctly. Interpretation is human.
 
-Nothing is marked inferred: every relationship is pinned to a line.
+**Marked inferred** (real, but not pinnable to one line):
+- `CIT` → `VAL`
 

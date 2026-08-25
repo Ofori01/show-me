@@ -45,14 +45,19 @@ of source, read it instead.**
 ## The pipeline
 
 ```
-1. Pin the revision   -> a clean checkout of the target branch
-2. Survey             -> what is in scope, and what the big pieces are
-3. Aggregate          -> 12-24 structures, never one-per-file
-4. Read and cite      -> relations and flows, every one with file:line:evidence
+1. Pin the revision   -> a clean checkout of the branch the user meant
+2. Scaffold           -> node scripts/scaffold.mjs   (inventory + empty shells)
+3. Aggregate          -> merge the shells by role; never one node per file
+4. Read and cite      -> node scripts/cite.mjs turns rg output into citations
 5. Validate           -> node scripts/validate.mjs   (hard gate + coverage)
-6. Render             -> node scripts/render.mjs
+6. Render             -> node scripts/render.mjs, and scripts/twin.mjs
 7. Publish            -> Artifact, and hand over the URL
 ```
+
+**Start with one feature, not the whole system.** A whole-application map is the
+most work and the least forgiving, and it is a poor first use. One workflow —
+8 to 16 structures, one or two flows — produces something useful in a fraction
+of the time and teaches you the shape of the format. Offer the wider map after.
 
 Read `references/schema.md` before writing any JSON — it is the contract.
 Read `references/extraction.md` for how to find structure by reading, and how
@@ -88,15 +93,41 @@ A map is a claim about one revision. Analyze a **clean checkout of the target
 branch**, never a dirty working tree, or the picture mixes shipped code with
 someone's in-progress edits.
 
+**Ask which branch, or use the one the user named.** Do not assume `main` — plenty
+of projects develop on `develop`, `trunk` or a release branch, and a map of the
+wrong branch is wrong in a way that is hard to spot.
+
 ```bash
-git fetch origin main --quiet
-git worktree add -b map/<subject> /tmp/<repo>-map origin/main
-git -C /tmp/<repo>-map rev-parse --short HEAD    # goes in meta.commit
+BRANCH=develop                       # whichever branch the user actually meant
+NAME=$(basename "$PWD")
+git fetch origin "$BRANCH" --quiet
+git worktree add --detach "/tmp/$NAME-map" "origin/$BRANCH"
+git -C "/tmp/$NAME-map" rev-parse --short HEAD    # goes in meta.commit
 ```
 
-Analyze inside that worktree and pass it as `--repo`. Remove it when done.
+`--detach` avoids creating a branch you would then have to delete. Analyze
+inside that worktree and pass it as `--repo`. When you are done, remove it with
+git rather than by deleting the directory:
 
-## Step 2 — survey before you read
+```bash
+git worktree remove "/tmp/$NAME-map"
+```
+
+## Step 2 — scaffold, then survey
+
+```bash
+node scripts/scaffold.mjs --repo <worktree> --branch <branch> \
+  --mode feature --scope 'src/thing/**/*' --out draft.json
+```
+
+It writes the clerical half: the revision, candidate scope globs, and one empty
+structure shell per directory, plus a report of where the lines actually are,
+which manifests exist, and which files look like doorways. It infers no
+architecture — the shells are a guess at the seams and nothing more, and every
+one carries a placeholder the gate rejects until you have read the code.
+
+Merge the shells by **the role things play**, which is usually not the directory
+layout. Delete the ones that are not structures. Then survey what is left:
 
 Decide the region, then get its shape. `meta.scopeGlobs` is that region stated
 as globs, and it is what makes coverage checkable rather than a claim.
@@ -197,8 +228,18 @@ field, so every chapter looks the same and the reveal reads as nothing.
 
 `references/extraction.md` has the recipes. The short version:
 
-- **Never type a line number.** `rg -n 'exact text'` gives you file, line and
-  the literal string in one step, in any language, and it cannot mistype.
+- **Never type a line number, and do not retype the evidence either.** Pipe
+  ripgrep straight into `cite.mjs`, which formats the citation and verifies it
+  on the spot:
+
+  ```bash
+  rg -nH 'def create_app' api/ | node scripts/cite.mjs --repo <worktree>
+  rg -nH 'constructor\(' src/thing.ts | node scripts/cite.mjs --repo <worktree> --edge
+  ```
+
+  Use `-H` so ripgrep includes the filename; it omits it when you name a single
+  file, in which case pass `--file <path>`. `--edge` emits edge-shaped stubs
+  with the `from`/`to` left for you.
 - Evidence strength runs: injected dependencies and constructor parameters >
   imports > persistence calls > names that merely look related. The last is not
   evidence; grep for the other end before drawing an edge.
@@ -243,11 +284,27 @@ node scripts/twin.mjs     <map>.json --repo <worktree> --out SYSTEM.md
 still cheap to change, and skips the citation and prose checks. Run it as soon
 as you have a grouping and before you write a sentence.
 
-`validate.mjs` exits non-zero on any error. Read the warnings too — the
-readability target, orphan nodes, files claimed by two nodes, and above all
-**scope coverage**: a cluster of unclaimed files sharing a directory prefix is
-a subsystem you read past. That check has caught a missing subsystem in a map
-whose author had already read the directory it lived in.
+`validate.mjs` exits non-zero on any error, and separates what it tells you into
+two lanes. **Warnings** are structural: orphan nodes, files claimed twice, a flow
+attached to no chapter, and above all **scope coverage** — a cluster of unclaimed
+files sharing a directory prefix is a subsystem you read past. That check has
+caught a missing subsystem in a map whose author had already read the directory
+it lived in. **Craft notes** are prose polish and block nothing.
+
+Two flags for the parts that used to require guesswork:
+
+```bash
+node scripts/validate.mjs <map>.json --repo <worktree> --globs-only
+node scripts/validate.mjs <map>.json --repo <worktree> --suggest-unclaimed
+```
+
+`--globs-only` checks ownership, overlap and coverage before you write a
+sentence. `--suggest-unclaimed` proposes candidate globs for the files nothing
+claimed — patterns only, with no opinion about what they mean.
+
+When a chapter's flow reaches something the reader has not met yet, the error
+names the earliest chapter where that flow would be legal, so attaching it is a
+lookup rather than a search. Unattached flows get the same note as a warning.
 
 A map goes stale the moment the code moves and the gate will reject it.
 `--relocate` repairs the mechanical part:
